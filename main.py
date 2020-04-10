@@ -91,7 +91,7 @@ def AddInterface( InterfaceName, InterfaceType, ParentDev, DevSlot ):
 		print("Creating Interface " + InterfaceName + " from " + InterfaceType + " in " + ParentDev)
 		globals()[InterfaceName] = copy.deepcopy(globals()[InterfaceType])
 		globals()[InterfaceName].ParentDev = ParentDev
-		globals()[ParentDev].Interfaces[DevSlot] = InterfaceName
+		globals()[ParentDev].Interfaces[int(DevSlot)] = InterfaceName
 		ActiveInterfaces.append(InterfaceName)
 		return globals()[InterfaceName]
 	else:
@@ -160,7 +160,7 @@ if "--cli" in sys.argv or "-c" in sys.argv:
 			if len(cliinput) != 5 or "--help" in cliinput or "-h" in cliinput:
 				print("This Creates a new Interface in an existing Device\nUsage:\nAddInterface \033[1m[Interface Name] [Interface Type] [Parent Device] [Device Slot]\033[0m")
 			else:
-				AddInterface(cliinput [1], cliinput[2], cliinput[3], cliinput[4])
+				AddInterface(cliinput[1], cliinput[2], cliinput[3], cliinput[4])
 		#This connects two interfaces
 		elif cliinput[0] == "ConnectInterfaces":
 			if len(cliinput) != 5 or "--help" in cliinput or "-h" in cliinput:
