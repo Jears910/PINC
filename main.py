@@ -3,6 +3,7 @@ import os
 import copy
 import time
 import sys
+import threading
 
 #--------------Default Classes------------------
 class NetDevice (object):
@@ -115,6 +116,7 @@ def ConnectInterfaces( ConnectorName, ConnectorType, Interface1, Interface2 ):
 #This function is used to send a frame between Interfaces
 #The Frame is the whole actual frame as a long integer
 def SendFrame( Frame, Interface1, Interface2 ):
+	Frame = eval(Frame)
 	#The interfaces must be connected
 	if globals()[Interface1].ConnectedConnector == globals()[Interface2].ConnectedConnector:
 		time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
@@ -122,6 +124,16 @@ def SendFrame( Frame, Interface1, Interface2 ):
 		exec(open(os.path.join(os.getcwd(), "Addinscripts", globals()[Interface2].FrameHandleRecv)).read())
 	else:
 		print("Make sure you selected two existing Interfaces that are connected")
+#The frame sending needs to happen in the background so that it doesn't lock up the whole program
+def run_bg( bg_process ):
+	bg_process_list = bg_process.split(", ")
+	#print(globals()[process])
+	process_bg_thread = threading.Thread(target=globals()[bg_process_list[0]], args=bg_process_list[1:None])
+	process_bg_thread.start()
+
+#def SendFrame_bg( Frame, Interface1, Interface2 ):
+#	SendFrame_thread = threading.Thread(target=SendFrame, args=[Frame, Interface1, Interface2])
+#	SendFrame_thread.start()
 
 # Test function calls, these are gonna be removed when there is an interactive conslole
 CreateDevice("Switch1", "OPNSwitch")
@@ -129,7 +141,11 @@ AddInterface("RJ45Sw1", "InterfaceRJ45", "Switch1", 0)
 CreateDevice("Switch2", "OPNSwitch")
 AddInterface("RJ45Sw2", "InterfaceRJ45", "Switch2", 0)
 ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
-SendFrame(0xafd54855, "RJ45Sw1", "RJ45Sw2")
+run_bg("SendFrame, 0xafd54855, RJ45Sw1, RJ45Sw2")
+time.sleep(1)
+run_bg("CreateDevice, Switch3, OPNSwitch")
+time.sleep(1)
+print(Switch3)
 
 #-------------------CLI Mode------------------------------
 if "--cli" in sys.argv or "-c" in sys.argv:
