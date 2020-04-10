@@ -136,16 +136,12 @@ def run_bg( bg_process ):
 #	SendFrame_thread.start()
 
 # Test function calls, these are gonna be removed when there is an interactive conslole
-CreateDevice("Switch1", "PINCwitch")
+CreateDevice("Switch1", "PINCSwitch")
 AddInterface("RJ45Sw1", "InterfaceRJ45", "Switch1", 0)
-CreateDevice("Switch2", "PINCwitch")
+CreateDevice("Switch2", "PINCSwitch")
 AddInterface("RJ45Sw2", "InterfaceRJ45", "Switch2", 0)
 ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
 run_bg("SendFrame, 0xafd54855, RJ45Sw1, RJ45Sw2")
-time.sleep(1)
-run_bg("CreateDevice, Switch3, PINCwitch")
-time.sleep(1)
-print(Switch3)
 
 #-------------------CLI Mode------------------------------
 if "--cli" in sys.argv or "-c" in sys.argv:
