@@ -136,14 +136,14 @@ def run_bg( bg_process ):
 #	SendFrame_thread.start()
 
 # Test function calls, these are gonna be removed when there is an interactive conslole
-CreateDevice("Switch1", "OPNSwitch")
+CreateDevice("Switch1", "PINCwitch")
 AddInterface("RJ45Sw1", "InterfaceRJ45", "Switch1", 0)
-CreateDevice("Switch2", "OPNSwitch")
+CreateDevice("Switch2", "PINCwitch")
 AddInterface("RJ45Sw2", "InterfaceRJ45", "Switch2", 0)
 ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
 run_bg("SendFrame, 0xafd54855, RJ45Sw1, RJ45Sw2")
 time.sleep(1)
-run_bg("CreateDevice, Switch3, OPNSwitch")
+run_bg("CreateDevice, Switch3, PINCwitch")
 time.sleep(1)
 print(Switch3)
 
@@ -152,7 +152,7 @@ if "--cli" in sys.argv or "-c" in sys.argv:
 	print("\033[96;1mCLI Mode")
 	stopcli = False
 	while stopcli == False:
-		cliinput = input("\033[92;1mopns > \033[0m").split(" ")
+		cliinput = input("\033[92;1mPINC > \033[0m").split(" ")
 		#This Crates a new Device by using the correct function
 		if cliinput[0] == "CreateDevice":
 			if len(cliinput) != 3 or "--help" in cliinput or "-h" in cliinput:
@@ -183,4 +183,4 @@ if "--cli" in sys.argv or "-c" in sys.argv:
 			stopcli = True
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!Add a help command
 		else:
-			print("Couldn't recognize \"" + cliinput[0] + "\" as a OPNS-CLI command. Get help with the \"help\" command")
+			print("Couldn't recognize \"" + cliinput[0] + "\" as a PINC-CLI command. Get help with the \"help\" command")

@@ -1,5 +1,5 @@
 #Name					UI		Interface Slots								Recv Script			Send Script
-OPNSwitch =	NetDevice(	None,	[None, None, None, None, None, None, None],	"OPNSwitchRecv.py",	"OPNSwitchSend.py")
+PINCwitch =	NetDevice(	None,	[None, None, None, None, None, None, None],	"OPNSwitchRecv.py",	"OPNSwitchSend.py")
 
 #Name							ConType	RecvScript				SendScript				ParentDev	ConnectedConnector	Attributes
 InterfaceRJ45 = NetInterface(	"RJ45",	"InterfaceRJ45Recv.py",	"InterfaceRJ45Send.py",	None,		None,				["ab:cd:ef:01:23:45"])
