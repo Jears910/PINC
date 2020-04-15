@@ -126,14 +126,15 @@ def SendFrame( Frame, Interface1, Interface2 ):
 		print("Make sure you selected two existing Interfaces that are connected")
 #The frame sending needs to happen in the background so that it doesn't lock up the whole program
 def run_bg( bg_process ):
-	bg_process_list = bg_process.split(", ")
-	#print(globals()[process])
+	bg_process = str(bg_process)
+	bg_process_list = bg_process.split(" ")
+	print(bg_process_list)
 	process_bg_thread = threading.Thread(target=globals()[bg_process_list[0]], args=bg_process_list[1:None])
 	process_bg_thread.start()
 
-#def SendFrame_bg( Frame, Interface1, Interface2 ):
-#	SendFrame_thread = threading.Thread(target=SendFrame, args=[Frame, Interface1, Interface2])
-#	SendFrame_thread.start()
+def SendFrame_bg( Frame, Interface1, Interface2 ):
+	Frame = str(Frame)
+	run_bg( str("SendFrame " + Frame + " " + Interface1 + " " + Interface2) )
 
 # Test function calls, these are gonna be removed when there is an interactive conslole
 CreateDevice("Switch1", "PINCSwitch")
@@ -141,10 +142,28 @@ AddInterface("RJ45Sw1", "InterfaceRJ45", "Switch1", 0)
 CreateDevice("Switch2", "PINCSwitch")
 AddInterface("RJ45Sw2", "InterfaceRJ45", "Switch2", 0)
 ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
-run_bg("SendFrame, 0xafd54855, RJ45Sw1, RJ45Sw2")
+SendFrame_bg(0x235235, "RJ45Sw1", "RJ45Sw2")
 
 #-------------------CLI Mode------------------------------
-if "--cli" in sys.argv or "-c" in sys.argv:
+if "--gtk" in sys.argv or "-g" in sys.argv:
+	import gi
+	gi.require_version("Gtk", "3.0")
+	from gi.repository import Gtk
+	class PINCWindowMain(Gtk.Window):
+		def __init__(self):
+			Gtk.Window.__init__(self, title="PINC")
+			
+			#self.MenuBar = Gtk.MenuBar()
+			#self.add(self.MenuBar)
+			self.Toolbar = Gtk.Toolbar()
+			self.add(self.Toolbar)
+	WindowMain = PINCWindowMain()
+	WindowMain.connect("destroy", Gtk.main_quit)
+	WindowMain.show_all()
+	Gtk.main()
+
+elif "--cli" in sys.argv or "-c" in sys.argv:
+#else: #I want to be able to use it without typing -g all the time
 	print("\033[96;1mCLI Mode")
 	stopcli = False
 	while stopcli == False:
@@ -177,6 +196,13 @@ if "--cli" in sys.argv or "-c" in sys.argv:
 		#allows you to exit the commandline
 		elif cliinput[0] == "exit":
 			stopcli = True
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!Add a help command
+		#help command !!!!!!!!!!!!!!!!! Update if you change anything
+		elif cliinput[0] == "help":
+			print("CreateDevice \033[1m[DeviceName] [DeviceType]\033[0m\nThis Creates a new Device\n")
+			print("AddInterface \033[1m[Interface Name] [Interface Type] [Parent Device] [Device Slot]\033[0m\nThis Creates a new Interface in an existing Device\n")
+			print("ConnectInterfaces \033[1m[Connector Name] [Connector Type] [Interface 1] [Interface 2]\033[0m\nThis Creates a new Connection between two existing Interfaces\n")
+			print("ListDevices\nThis lists all active Devices\n")
+			print("ListInterfaces\nThis lists all active Interfaces\n")
+			print("ListConnectors\nThis lists all active Connectors\n")
 		else:
-			print("Couldn't recognize \"" + cliinput[0] + "\" as a PINC-CLI command. Get help with the \"help\" command")
+			print("Couldn't recognize \"" + cliinput[0] + "\" as a PINC-CLI command. Get help with the \033[1mhelp\033[0m command")
