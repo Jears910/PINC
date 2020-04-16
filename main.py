@@ -146,16 +146,7 @@ def run_bg( bg_process ):
 				lastBracket = location - 1
 		bg_process_process = bg_process[None:firstBracket]
 		bg_process_args = bg_process[firstBracket+1:lastBracket]
-#THIS DOESNT WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		bg_process_args = "[" + str(bg_process_args[None:None]) + "]"
-		bg_process_args = ''.join(bg_process_args)
-		print(eval(bg_process_args)[1])
-		print(bg_process_args)
-		print(bg_process_process)
-		bg_process_process = ''.join(bg_process_process)
-		#print(bg_process_args)
-#CONTINUE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
-		process_bg_thread = threading.Thread(target=globals()[bg_process_process], args=bg_process_args)
+		process_bg_thread = threading.Thread(target=eval(bg_process_process), args=(eval(bg_process_args)))
 		process_bg_thread.start()
 	else:
 		print("bg_run needs a string but was given " + str(type(bg_process)))
