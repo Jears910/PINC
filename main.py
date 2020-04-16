@@ -114,27 +114,46 @@ def ConnectInterfaces( ConnectorName, ConnectorType, Interface1, Interface2 ):
 	else:
 		print("Could not create Connector, check that the Connector Types match, that you choose valid interfaces and a unique name")
 #This function is used to send a frame between Interfaces
-#The Frame is the whole actual frame as a long integer
+#The Frame is the whole actual frame as a table, each field in the frame can be split that way.
 def SendFrame( Frame, Interface1, Interface2 ):
-	Frame = eval(Frame)
+	if(isinstance( Frame, list )):
 	#The interfaces must be connected
-	if globals()[Interface1].ConnectedConnector == globals()[Interface2].ConnectedConnector:
-		time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
-		#Tell the Interface it recieved a frame
-		exec(open(os.path.join(os.getcwd(), "Addinscripts", globals()[Interface2].FrameHandleRecv)).read())
+		if globals()[Interface1].ConnectedConnector == globals()[Interface2].ConnectedConnector:
+			time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
+			#Tell the Interface it recieved a frame
+			exec(open(os.path.join(os.getcwd(), "Addinscripts", globals()[Interface2].FrameHandleRecv)).read())
+		else:
+			print("Make sure you selected two existing Interfaces that are connected")
 	else:
-		print("Make sure you selected two existing Interfaces that are connected")
-#The frame sending needs to happen in the background so that it doesn't lock up the whole program
-def run_bg( bg_process ):
-	bg_process = str(bg_process)
-	bg_process_list = bg_process.split(" ")
-	print(bg_process_list)
-	process_bg_thread = threading.Thread(target=globals()[bg_process_list[0]], args=bg_process_list[1:None])
-	process_bg_thread.start()
+		print("The string needs to be a list but was given a " + str(type(Frame)))
 
-def SendFrame_bg( Frame, Interface1, Interface2 ):
-	Frame = str(Frame)
-	run_bg( str("SendFrame " + Frame + " " + Interface1 + " " + Interface2) )
+#The frame sending needs to happen in the background so that it doesn't lock up the whole program, this function allows to run things in bg
+#This Needs improvement on the way it passes its arguments !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+def run_bg( bg_process ):
+	if(isinstance(bg_process, str)):
+		location = 0
+		firstBracket = None
+		lastBracket = None
+		for character in bg_process:
+			location += 1
+			if(character == "("):
+				firstBracket = location - 1
+				break
+		location = 0
+		for character in bg_process:
+			location += 1
+			if(character == ")"):
+				lastBracket = location - 1
+		bg_process = [bg_process]
+		bg_process_process = bg_process[None:firstBracket]
+		bg_process_args = bg_process[firstBracket+1:lastBracket]
+		print(bg_process_process)
+		print(bg_process_args)
+#CONTINUE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+		process_bg_thread = threading.Thread(target=bg_process_process, args=bg_process_args)
+		process_bg_thread.start()
+	else:
+		print("bg_run needs a string but was given " + str(type(bg_process)))
 
 # Test function calls, these are gonna be removed when there is an interactive conslole
 CreateDevice("Switch1", "PINCSwitch")
@@ -142,28 +161,29 @@ AddInterface("RJ45Sw1", "InterfaceRJ45", "Switch1", 0)
 CreateDevice("Switch2", "PINCSwitch")
 AddInterface("RJ45Sw2", "InterfaceRJ45", "Switch2", 0)
 ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
-SendFrame_bg(0x235235, "RJ45Sw1", "RJ45Sw2")
+run_bg('SendFrame([123, 34234, 32423], "RJ45Sw1", "RJ45Sw2")')
 
 #-------------------CLI Mode------------------------------
 if "--gtk" in sys.argv or "-g" in sys.argv:
-	import gi
-	gi.require_version("Gtk", "3.0")
-	from gi.repository import Gtk
-	class PINCWindowMain(Gtk.Window):
-		def __init__(self):
-			Gtk.Window.__init__(self, title="PINC")
-			
-			#self.MenuBar = Gtk.MenuBar()
-			#self.add(self.MenuBar)
-			self.Toolbar = Gtk.Toolbar()
-			self.add(self.Toolbar)
-	WindowMain = PINCWindowMain()
-	WindowMain.connect("destroy", Gtk.main_quit)
-	WindowMain.show_all()
-	Gtk.main()
+	pass
+	#import gi
+	#gi.require_version("Gtk", "3.0")
+	#from gi.repository import Gtk
+	#class PINCWindowMain(Gtk.Window):
+	#	def __init__(self):
+	#		Gtk.Window.__init__(self, title="PINC")
+	#		
+	#		#self.MenuBar = Gtk.MenuBar()
+	#		#self.add(self.MenuBar)
+	#		self.Toolbar = Gtk.Toolbar()
+	#		self.add(self.Toolbar)
+	#WindowMain = PINCWindowMain()
+	#WindowMain.connect("destroy", Gtk.main_quit)
+	#WindowMain.show_all()
+	#Gtk.main()
 
-elif "--cli" in sys.argv or "-c" in sys.argv:
-#else: #I want to be able to use it without typing -g all the time
+#elif "--cli" in sys.argv or "-c" in sys.argv:
+else: #I want to be able to use it without typing -g all the time
 	print("\033[96;1mCLI Mode")
 	stopcli = False
 	while stopcli == False:
