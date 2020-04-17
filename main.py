@@ -54,10 +54,10 @@ class NetConnector (object):
 
 #-------------Import Addins--------------------
 #Needs Improving!
-
-for filename in os.listdir(os.path.join(os.getcwd(), "Addins")):
-	addfile = os.path.join(os.getcwd(), "Addins", filename)
-	exec(open(addfile).read())
+print()
+for filename in os.listdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Addins")):
+		addfile = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Addins", filename)
+		exec(open(addfile).read())
 del filename
 del addfile
 
@@ -121,7 +121,7 @@ def SendFrame( Frame, Interface1, Interface2 ):
 		if globals()[Interface1].ConnectedConnector == globals()[Interface2].ConnectedConnector:
 			time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
 			#Tell the Interface it recieved a frame
-			exec(open(os.path.join(os.getcwd(), "Addinscripts", globals()[Interface2].FrameHandleRecv)).read())
+			exec(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Addinscripts", globals()[Interface2].FrameHandleRecv)).read())
 		else:
 			print("Make sure you selected two existing Interfaces that are connected")
 	else:
