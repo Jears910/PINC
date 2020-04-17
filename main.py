@@ -29,13 +29,13 @@ class NetInterface (object):
 	ParentDev = ""
 	ConnectedConnector = ""
 	Attributes = []
-	def __init__(self, Connector, FrameHandleRecv, FrameHandleSend, ParentDev, ConnectedConnector, Attributes):
+	def __init__(self, Connector, FrameHandleRecv, FrameHandleSend, ParentDev, ConnectedConnector, MAC):
 		self.Connector = Connector
 		self.FrameHandleRecv = FrameHandleRecv
 		self.FrameHandleSend = FrameHandleSend
 		self.ParentDev = ParentDev
 		self.ConnectedConnector = ConnectedConnector
-		self.Attributes = Attributes
+		self.MAC = MAC
 
 class NetConnector (object):
 	'Cables, Adapters, ...'
@@ -54,9 +54,11 @@ class NetConnector (object):
 
 #-------------Import Addins--------------------
 #Needs Improving!
-print()
-for filename in os.listdir(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Addins")):
-		addfile = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Addins", filename)
+print(os.path.dirname(os.path.realpath(__file__)))
+
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+for filename in os.listdir(os.path.join(os.getcwd(), "Addins")):
+		addfile = os.path.join(os.getcwd(), "Addins", filename)
 		exec(open(addfile).read())
 del filename
 del addfile
@@ -121,7 +123,7 @@ def SendFrame( Frame, Interface1, Interface2 ):
 		if globals()[Interface1].ConnectedConnector == globals()[Interface2].ConnectedConnector:
 			time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
 			#Tell the Interface it recieved a frame
-			exec(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "Addinscripts", globals()[Interface2].FrameHandleRecv)).read())
+			exec(open(os.path.join(os.getcwd(), "Addinscripts", globals()[Interface2].FrameHandleRecv)).read())
 		else:
 			print("Make sure you selected two existing Interfaces that are connected")
 	else:
@@ -157,26 +159,26 @@ AddInterface("RJ45Sw1", "InterfaceRJ45", "Switch1", 0)
 CreateDevice("Switch2", "PINCSwitch")
 AddInterface("RJ45Sw2", "InterfaceRJ45", "Switch2", 0)
 ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
-run_bg('SendFrame([123, 34234, 32423], "RJ45Sw1", "RJ45Sw2")')
+run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45Sw1.MAC, 0x0800, [0x0], 26151354, 0x000000000000000000000000], "RJ45Sw1", "RJ45Sw2")')
 
 #-------------------CLI Mode------------------------------
 if "--gtk" in sys.argv or "-g" in sys.argv:
 	pass
-	#import gi
-	#gi.require_version("Gtk", "3.0")
-	#from gi.repository import Gtk
-	#class PINCWindowMain(Gtk.Window):
-	#	def __init__(self):
-	#		Gtk.Window.__init__(self, title="PINC")
-	#		
-	#		#self.MenuBar = Gtk.MenuBar()
-	#		#self.add(self.MenuBar)
-	#		self.Toolbar = Gtk.Toolbar()
-	#		self.add(self.Toolbar)
-	#WindowMain = PINCWindowMain()
-	#WindowMain.connect("destroy", Gtk.main_quit)
-	#WindowMain.show_all()
-	#Gtk.main()
+	import gi
+	gi.require_version("Gtk", "3.0")
+	from gi.repository import Gtk
+	class PINCWindowMain(Gtk.Window):
+		def __init__(self):
+			Gtk.Window.__init__(self, title="PINC")
+			
+			#self.MenuBar = Gtk.MenuBar()
+			#self.add(self.MenuBar)
+			self.Toolbar = Gtk.Toolbar()
+			self.add(self.Toolbar)
+	WindowMain = PINCWindowMain()
+	WindowMain.connect("destroy", Gtk.main_quit)
+	WindowMain.show_all()
+	Gtk.main()
 
 #elif "--cli" in sys.argv or "-c" in sys.argv:
 else: #I want to be able to use it without typing -g all the time
