@@ -161,27 +161,43 @@ AddInterface("RJ45Sw2", "InterfaceRJ45", "Switch2", 0)
 ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
 run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45Sw1.MAC, 0x0800, [0x0], 26151354, 0x000000000000000000000000], "RJ45Sw1", "RJ45Sw2")')
 
-#-------------------CLI Mode------------------------------
+#--------------Gtk Mode----------------------------------
 if "--gtk" in sys.argv or "-g" in sys.argv:
 	pass
 	import gi
-	gi.require_version("Gtk", "3.0")
+	gi.require_version('Gtk', '3.0')
 	from gi.repository import Gtk
+	from gi.repository import Gdk
 	class PINCWindowMain(Gtk.Window):
 		def __init__(self):
 			Gtk.Window.__init__(self, title="PINC")
-			
 			#self.MenuBar = Gtk.MenuBar()
 			#self.add(self.MenuBar)
-			self.Toolbar = Gtk.Toolbar()
-			self.add(self.Toolbar)
+			self.DrawingArea = Gtk.DrawingArea()
+			self.add(self.DrawingArea)
+			self.DrawingArea.connect("draw", self.Draw, self.DrawingArea)
+		def Draw(self, widget, event , Area):
+			cr = widget.get_property('window').cairo_create()
+			#Get the foreground color (What the fuck Gtk, why is this so much for a color)
+			foregroundColor = Gtk.StyleContext.get_color(WindowMain.DrawingArea.get_style_context(), WindowMain.DrawingArea.get_state())
+			#Set the default line color
+			cr.set_source_rgb(foregroundColor.red, foregroundColor.green, foregroundColor.blue)
+#--------- From here on it is just tests that will be removed
+			cr.move_to(20, 20)
+			cr.line_to(30, 30)
+			cr.stroke()
+			cr.move_to(40, 40)
+			cr.line_to(55, 35)
+			cr.stroke()
+
 	WindowMain = PINCWindowMain()
 	WindowMain.connect("destroy", Gtk.main_quit)
 	WindowMain.show_all()
 	Gtk.main()
 
+#-------------------CLI Mode------------------------------
 #elif "--cli" in sys.argv or "-c" in sys.argv:
-else: #I want to be able to use it without typing -g all the time
+else: #I want to be able to use it without typing -c all the time
 	print("\033[96;1mCLI Mode")
 	stopcli = False
 	while stopcli == False:
