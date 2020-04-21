@@ -1,9 +1,10 @@
-#! /usr/bin/python
+#! /usr/bin/env python3
 import os
 import copy
 import time
 import sys
 import threading
+import binascii
 
 #--------------Default Classes------------------
 class NetDevice (object):
@@ -129,6 +130,30 @@ def SendFrame( Frame, Interface1, Interface2 ):
 	else:
 		print("The string needs to be a list but was given a " + str(type(Frame)))
 
+#This function should be used to calculate crc32 checksums
+def crc32(Input):
+	crcBytes = bytearray()
+	print(Input)
+	for element in Input:
+		if(isinstance(element,int)):
+			bytenumber = format(element, '0x')
+		elif(isinstance(element,str)):
+			bytenumber = format(int.from_bytes(element.encode('utf-8'), "big"), '0x')
+		elif(isinstance(element,list)):
+			bytenumber = 0
+			for subelement in element:
+				if(isinstance(subelement,int)):
+					bytenumber += subelement
+				elif(isinstance(subelement,str)):
+					bytenumber += int.from_bytes(subelement.encode('utf-8'), "big")
+			bytenumber = format(bytenumber, '0x')
+		if(len(bytenumber) % 2):
+			bytenumber = "0" + bytenumber
+		appendBytes = bytearray.fromhex(bytenumber)
+		crcBytes = crcBytes + appendBytes
+	crc32Result = binascii.crc32(crcBytes)
+	return crc32Result
+
 #The frame sending needs to happen in the background so that it doesn't lock up the whole program, this function allows to run things in bg
 #This Needs improvement on the way it passes its arguments !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def run_bg( bg_process ):
@@ -155,11 +180,11 @@ def run_bg( bg_process ):
 
 # Test function calls, these are gonna be removed when there is an interactive conslole
 CreateDevice("Switch1", "PINCSwitch")
-AddInterface("RJ45Sw1", "InterfaceRJ45", "Switch1", 0)
+AddInterface("RJ45Sw1", "RJ45Ethernet", "Switch1", 0)
 CreateDevice("Switch2", "PINCSwitch")
-AddInterface("RJ45Sw2", "InterfaceRJ45", "Switch2", 0)
+AddInterface("RJ45Sw2", "RJ45Ethernet", "Switch2", 0)
 ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
-run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45Sw1.MAC, 0x0800, [0x0], 26151354, 0x000000000000000000000000], "RJ45Sw1", "RJ45Sw2")')
+run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45Sw1.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], "RJ45Sw1", "RJ45Sw2")')
 
 #--------------Gtk Mode----------------------------------
 if "--gtk" in sys.argv or "-g" in sys.argv:
