@@ -1,7 +1,7 @@
 def main():
 	import DefaultClasses
 		#Name									ConType	RecvScript					SendScript				ParentDev	ConnectedConnector	Attributes
-	RJ45Ethernet = DefaultClasses.NetInterface(	"RJ45",	"RJ45EthernetRecv.py",	"RJ45EthernetSend.py",	None,		None,				0xabcdef012345)
+	RJ45Ethernet = DefaultClasses.NetInterface(	"RJ45",	None,		None,				0xabcdef012345)
 	return RJ45Ethernet
 def recv(Frame, Interface1, Interface2):
 	import ethertype

@@ -7,11 +7,9 @@ class NetDevice (object):
 	PackageRecv = ""
 	PackageSend = ""
 	AddMod = ""
-	def __init__(self, UI, Interfaces, PackageRecv, PackageSend):
+	def __init__(self, UI, Interfaces):
 		self.UI = UI
 		self.Interfaces = Interfaces
-		self.PackageRecv = PackageRecv
-		self.PackageSend = PackageSend
 
 class NetInterface (object):
 	'Interfaces that get plugged into a NetDevice'
@@ -23,10 +21,8 @@ class NetInterface (object):
 	ConnectedConnector = ""
 	Attributes = []
 	AddMod = ""
-	def __init__(self, Connector, FrameHandleRecv, FrameHandleSend, ParentDev, ConnectedConnector, MAC):
+	def __init__(self, Connector, ParentDev, ConnectedConnector, MAC):
 		self.Connector = Connector
-		self.FrameHandleRecv = FrameHandleRecv
-		self.FrameHandleSend = FrameHandleSend
 		self.ParentDev = ParentDev
 		self.ConnectedConnector = ConnectedConnector
 		self.MAC = MAC
