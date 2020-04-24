@@ -1,68 +1,36 @@
 #! /usr/bin/env python3
+# Distributed under the terms of the GPL v3
 import os
 import copy
 import time
 import sys
 import threading
-import binascii
+import appdirs
+import DefaultClasses
 
+#Set paths to the right path
+cwd = os.getcwd()
+config_dir = appdirs.user_config_dir()
+PINC_dir = os.path.join(appdirs.user_data_dir(),"PINC")
+addinscripts_dir = os.path.join(appdirs.user_data_dir(),"PINC","Addinscripts")
 #--------------Default Classes------------------
-class NetDevice (object):
-	'Network Device'
-	# If the device should have a UI (in form of a CLI), the py File goes here, otherwise put None here
-	UI = ""
-	# Always define Interface slots as None, they are added later
-	Interfaces = []
-	PackageRecv = ""
-	PackageSend = ""
-	def __init__(self, UI, Interfaces, PackageRecv, PackageSend):
-		self.UI = UI
-		self.Interfaces = Interfaces
-		self.PackageRecv = PackageRecv
-		self.PackageSend = PackageSend
 
-class NetInterface (object):
-	'Interfaces that get plugged into a NetDevice'
-	Connector = ""
-	# The interface performs Package Handling when it Recieves or Sends a Package. These Routins are defined in a Python File
-	FrameHandleRecv = ""
-	FrameHandleSend = ""
-	ParentDev = ""
-	ConnectedConnector = ""
-	Attributes = []
-	def __init__(self, Connector, FrameHandleRecv, FrameHandleSend, ParentDev, ConnectedConnector, MAC):
-		self.Connector = Connector
-		self.FrameHandleRecv = FrameHandleRecv
-		self.FrameHandleSend = FrameHandleSend
-		self.ParentDev = ParentDev
-		self.ConnectedConnector = ConnectedConnector
-		self.MAC = MAC
-
-class NetConnector (object):
-	'Cables, Adapters, ...'
-	Connector1 = ""
-	Connector2 = ""
-	Interface1 = ""
-	Interface2 = ""
-	#Latency is provided in ms
-	Latency = 0
-	def __init__(self, Connector1, Connector2, Interface1, Interface2, Latency):
-		self.Connector1 = Connector1
-		self.Connector2 = Connector2
-		self.Interface1 = Interface1
-		self.Interface2 = Interface2
-		self.Latency = Latency
 
 #-------------Import Addins--------------------
 #Needs Improving!
-print(os.path.dirname(os.path.realpath(__file__)))
-
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
-for filename in os.listdir(os.path.join(os.getcwd(), "Addins")):
-		addfile = os.path.join(os.getcwd(), "Addins", filename)
-		exec(open(addfile).read())
-del filename
-del addfile
+sys.path.append(PINC_dir)
+import Addins
+from Addins import *
+for Adds in Addins.allfiles:
+	globals()[Adds[6:]] = globals()[Adds].main()
+	globals()[Adds[6:]].AddMod = str(Adds)
+#for filename in os.listdir(addins_dir):
+#	if(filename[-3:] == ".py" and not filename == "__init__.py" and not filename == "__pycache__"):
+#		addfile = os.path.join(addins_dir, filename)
+#		addname = os.path.splitext(filename)[0]
+#		spec = importlib.util.spec_from_file_location(addname, addfile)
+#		globals()[addfile] = importlib.util.module_from_spec(spec)
+#		spec.loader.exec_module(globals()[addfile])
 
 #----------Lists Needed by functions----------
 #This is the list with all the existing devices
@@ -76,8 +44,8 @@ ActiveConnectors = []
 # This is the function to create a new device
 def CreateDevice( DevName, DevType ):
 	try:
-		if isinstance(globals()[DevType], NetDevice) and not DevType in ActiveDevices and not DevName in ActiveDevices:
-			print("Creating Device")
+		if isinstance(globals()[DevType], DefaultClasses.NetDevice) and not DevType in ActiveDevices and not DevName in ActiveDevices:
+			print("Creating Device " + DevName + " from " + DevType)
 			# To create a device the object is cloned and its name added to a list
 			"".join([vars()["DevType"], ".Interfaces"])
 			globals()[DevName] = copy.deepcopy(globals()[DevType])
@@ -124,40 +92,20 @@ def SendFrame( Frame, Interface1, Interface2 ):
 		if globals()[Interface1].ConnectedConnector == globals()[Interface2].ConnectedConnector:
 			time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
 			#Tell the Interface it recieved a frame
-			exec(open(os.path.join(os.getcwd(), "Addinscripts", globals()[Interface2].FrameHandleRecv)).read())
+			RecvInterface = globals()[Interface2]
+			globals()[RecvInterface.AddMod].recv(Frame, globals()[Interface1], globals()[Interface2])
 		else:
 			print("Make sure you selected two existing Interfaces that are connected")
 	else:
 		print("The string needs to be a list but was given a " + str(type(Frame)))
 
-#This function should be used to calculate crc32 checksums
-def crc32(Input):
-	crcBytes = bytearray()
-	print(Input)
-	for element in Input:
-		if(isinstance(element,int)):
-			bytenumber = format(element, '0x')
-		elif(isinstance(element,str)):
-			bytenumber = format(int.from_bytes(element.encode('utf-8'), "big"), '0x')
-		elif(isinstance(element,list)):
-			bytenumber = 0
-			for subelement in element:
-				if(isinstance(subelement,int)):
-					bytenumber += subelement
-				elif(isinstance(subelement,str)):
-					bytenumber += int.from_bytes(subelement.encode('utf-8'), "big")
-			bytenumber = format(bytenumber, '0x')
-		if(len(bytenumber) % 2):
-			bytenumber = "0" + bytenumber
-		appendBytes = bytearray.fromhex(bytenumber)
-		crcBytes = crcBytes + appendBytes
-	crc32Result = binascii.crc32(crcBytes)
-	return crc32Result
+
 
 #The frame sending needs to happen in the background so that it doesn't lock up the whole program, this function allows to run things in bg
 #This Needs improvement on the way it passes its arguments !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def run_bg( bg_process ):
 	if(isinstance(bg_process, str)):
+		# I'm resolving the given Process here so that it is 
 		location = 0
 		firstBracket = None
 		lastBracket = None
