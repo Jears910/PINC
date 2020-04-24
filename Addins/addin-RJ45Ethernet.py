@@ -28,7 +28,7 @@ def recv(Frame, Interface1, Interface2):
 						TypeName = ResolveEthertype(Frame[4])
 						if(not TypeName == 1):
 							if(crc32.crc32(Frame[2:6]) == Frame[6]):
-								pass
+								return Frame[5], TypeName, Interface2
 							else:
 								print("The CRC checksums don't match, please resend")
 					else:

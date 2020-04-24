@@ -93,7 +93,11 @@ def SendFrame( Frame, Interface1, Interface2 ):
 			time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
 			#Tell the Interface it recieved a frame
 			RecvInterface = globals()[Interface2]
-			globals()[RecvInterface.AddMod].recv(Frame, globals()[Interface1], globals()[Interface2])
+			Packet, Protocol, ChildInterface = globals()[RecvInterface.AddMod].recv(Frame, globals()[Interface1], globals()[Interface2])
+			#Tell the device what and from where it recieved
+			RecvDevice = globals()[RecvInterface.ParentDev]
+			globals()[RecvDevice.AddMod].recv(Packet, Protocol, ChildInterface)
+			#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!implement recv function in the net device
 		else:
 			print("Make sure you selected two existing Interfaces that are connected")
 	else:
@@ -105,7 +109,7 @@ def SendFrame( Frame, Interface1, Interface2 ):
 #This Needs improvement on the way it passes its arguments !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def run_bg( bg_process ):
 	if(isinstance(bg_process, str)):
-		# I'm resolving the given Process here so that it is 
+		# I'm resolving the given Process here so that it is readable for threads
 		location = 0
 		firstBracket = None
 		lastBracket = None
@@ -127,12 +131,12 @@ def run_bg( bg_process ):
 		print("bg_run needs a string but was given " + str(type(bg_process)))
 
 # Test function calls, these are gonna be removed when there is an interactive conslole
-CreateDevice("Switch1", "PINCSwitch")
-AddInterface("RJ45Sw1", "RJ45Ethernet", "Switch1", 0)
-CreateDevice("Switch2", "PINCSwitch")
-AddInterface("RJ45Sw2", "RJ45Ethernet", "Switch2", 0)
-ConnectInterfaces("RJ45Sw1Sw2", "RJ45", "RJ45Sw1", "RJ45Sw2")
-run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45Sw1.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], "RJ45Sw1", "RJ45Sw2")')
+CreateDevice("PC1", "PINCPC")
+AddInterface("RJ45PC1", "RJ45Ethernet", "PC1", 0)
+CreateDevice("PC2", "PINCPC")
+AddInterface("RJ45PC2", "RJ45Ethernet", "PC2", 0)
+ConnectInterfaces("RJ45PC1PC2", "RJ45", "RJ45PC1", "RJ45PC2")
+run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45PC1.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], "RJ45PC1", "RJ45PC2")')
 
 #--------------Gtk Mode----------------------------------
 if "--gtk" in sys.argv or "-g" in sys.argv:
