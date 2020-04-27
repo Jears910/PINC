@@ -2,7 +2,6 @@ def crc32(Input):
 	import binascii
 	#This function should be used to calculate crc32 checksumsdef crc32(Input):
 	crcBytes = bytearray()
-	print(Input)
 	for element in Input:
 		if(isinstance(element,int)):
 			bytenumber = format(element, '0x')

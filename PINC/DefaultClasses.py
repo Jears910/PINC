@@ -15,8 +15,6 @@ class NetInterface (object):
 	'Interfaces that get plugged into a NetDevice'
 	Connector = ""
 	# The interface performs Package Handling when it Recieves or Sends a Package. These Routins are defined in a Python File
-	FrameHandleRecv = ""
-	FrameHandleSend = ""
 	ParentDev = ""
 	ConnectedConnector = ""
 	Attributes = []

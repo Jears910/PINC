@@ -1,6 +1,7 @@
 def main():
 	import DefaultClasses
 		#Name									ConType	RecvScript					SendScript				ParentDev	ConnectedConnector	Attributes
+	#random.randint(0x000000000001, 0xfffffffffffe) This is gonna be the mac adress later
 	RJ45Ethernet = DefaultClasses.NetInterface(	"RJ45",	None,		None,				0xabcdef012345)
 	return RJ45Ethernet
 def recv(Frame, Interface1, Interface2):
@@ -31,11 +32,16 @@ def recv(Frame, Interface1, Interface2):
 								return Frame[5], TypeName, Interface2
 							else:
 								print("The CRC checksums don't match, please resend")
+								return 1
 					else:
 						print("This sender doesn't even have a valid MAC-Adress, I'm discarding it")
+						return 1
 				else:
 					print("This isn't my frame, I'm discarding it")
+					return 1
 			else:
 				print("Invalid sfd")
+				return 1
 		else:
 			print("Invalid preamble")
+			return 1

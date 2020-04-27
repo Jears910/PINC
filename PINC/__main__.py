@@ -5,16 +5,13 @@ import copy
 import time
 import sys
 import threading
-import appdirs
 import DefaultClasses
+import gi
+from gi.repository import GLib
 
 #Set paths to the right path
-cwd = os.getcwd()
-config_dir = appdirs.user_config_dir()
-PINC_dir = os.path.join(appdirs.user_data_dir(),"PINC")
-addinscripts_dir = os.path.join(appdirs.user_data_dir(),"PINC","Addinscripts")
-#--------------Default Classes------------------
-
+config_dir = GLib.get_user_config_dir()
+PINC_dir = os.path.join(GLib.get_user_data_dir(),"PINC")
 
 #-------------Import Addins--------------------
 #Needs Improving!
@@ -24,13 +21,6 @@ from Addins import *
 for Adds in Addins.allfiles:
 	globals()[Adds[6:]] = globals()[Adds].main()
 	globals()[Adds[6:]].AddMod = str(Adds)
-#for filename in os.listdir(addins_dir):
-#	if(filename[-3:] == ".py" and not filename == "__init__.py" and not filename == "__pycache__"):
-#		addfile = os.path.join(addins_dir, filename)
-#		addname = os.path.splitext(filename)[0]
-#		spec = importlib.util.spec_from_file_location(addname, addfile)
-#		globals()[addfile] = importlib.util.module_from_spec(spec)
-#		spec.loader.exec_module(globals()[addfile])
 
 #----------Lists Needed by functions----------
 #This is the list with all the existing devices
@@ -93,7 +83,11 @@ def SendFrame( Frame, Interface1, Interface2 ):
 			time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
 			#Tell the Interface it recieved a frame
 			RecvInterface = globals()[Interface2]
-			Packet, Protocol, ChildInterface = globals()[RecvInterface.AddMod].recv(Frame, globals()[Interface1], globals()[Interface2])
+			try:
+				pass
+				Packet, Protocol, ChildInterface = globals()[RecvInterface.AddMod].recv(Frame, globals()[Interface1], globals()[Interface2])
+			except:
+				print("")
 			#Tell the device what and from where it recieved
 			RecvDevice = globals()[RecvInterface.ParentDev]
 			globals()[RecvDevice.AddMod].recv(Packet, Protocol, ChildInterface)
@@ -103,7 +97,63 @@ def SendFrame( Frame, Interface1, Interface2 ):
 	else:
 		print("The string needs to be a list but was given a " + str(type(Frame)))
 
-
+def Rename( OldName, NewName ):
+	if(OldName in ActiveDevices):
+		if(NewName not in ActiveDevices and not NewName in ActiveInterfaces and not NewName in ActiveConnectors):
+			InterfaceNumber = 0
+			for Interface in globals()[OldName].Interfaces:
+				if(not Interface == None):
+					globals()[Interface].ParentDev = NewName
+			globals()[NewName] = globals()[OldName]
+			ElementPlace = 0
+			for Element in ActiveDevices:
+				if(Element == OldName):
+					ActiveDevices[ElementPlace] = NewName
+				ElementPlace += 1
+			del globals()[OldName]
+			print("Renamed Device " + OldName + " to " + NewName)
+			return globals()[NewName]
+		else:
+			print("This name has already been given to something else")
+	elif(OldName in ActiveInterfaces):
+		if(NewName not in ActiveDevices and not NewName in ActiveInterfaces and not NewName in ActiveConnectors):
+			InterfaceNumber = 0
+			for Interface in globals()[globals()[OldName].ParentDev].Interfaces:
+				if(globals()[globals()[OldName].ParentDev].Interfaces[InterfaceNumber] == OldName):
+					globals()[globals()[OldName].ParentDev].Interfaces[InterfaceNumber] = NewName
+					if(globals()[globals()[OldName].ConnectedConnector].Interface1 == OldName):
+						globals()[globals()[OldName].ConnectedConnector].Interface1 = NewName
+					if(globals()[globals()[OldName].ConnectedConnector].Interface2 == OldName):
+						globals()[globals()[OldName].ConnectedConnector].Interface2 = NewName
+					globals()[NewName] = globals()[OldName]
+			ElementPlace = 0
+			for Element in ActiveInterfaces:
+				if(Element == OldName):
+					ActiveInterfaces[ElementPlace] = NewName
+				ElementPlace += 1
+			del globals()[OldName]
+			print("Renamed Interface " + OldName + " to " + NewName)
+			return globals()[NewName]
+		else:
+			print("This name has already been given to something else")
+	elif(OldName in ActiveConnectors):
+		if(NewName not in ActiveDevices and not NewName in ActiveInterfaces and not NewName in ActiveConnectors):
+			globals()[globals()[OldName].Interface1].ConnectedConnector = NewName
+			globals()[globals()[OldName].Interface2].ConnectedConnector = NewName
+			globals()[NewName] = globals()[OldName]
+			ElementPlace = 0
+			for Element in ActiveConnectors:
+				if(Element == OldName):
+					ActiveConnectors[ElementPlace] = NewName
+				ElementPlace += 1
+			del ElementPlace
+			del globals()[OldName]
+			print("Renamed Connector " + OldName + " to " + NewName)
+			return globals()[NewName]
+		else:
+			print("This name has already been given to something else")
+	else:
+		print("Object to be renamed not found")
 
 #The frame sending needs to happen in the background so that it doesn't lock up the whole program, this function allows to run things in bg
 #This Needs improvement on the way it passes its arguments !!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -126,7 +176,7 @@ def run_bg( bg_process ):
 		bg_process_process = bg_process[None:firstBracket]
 		bg_process_args = bg_process[firstBracket+1:lastBracket]
 		process_bg_thread = threading.Thread(target=eval(bg_process_process), args=(eval(bg_process_args)))
-		process_bg_thread.start()
+		return process_bg_thread.start()
 	else:
 		print("bg_run needs a string but was given " + str(type(bg_process)))
 
@@ -136,12 +186,14 @@ AddInterface("RJ45PC1", "RJ45Ethernet", "PC1", 0)
 CreateDevice("PC2", "PINCPC")
 AddInterface("RJ45PC2", "RJ45Ethernet", "PC2", 0)
 ConnectInterfaces("RJ45PC1PC2", "RJ45", "RJ45PC1", "RJ45PC2")
-run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45PC1.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], "RJ45PC1", "RJ45PC2")')
+Rename("RJ45PC1PC2", "test")
+Rename("RJ45PC1", "RJ45TestName")
+Rename("PC1", "PCTest")
+run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45TestName.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], "RJ45TestName", "RJ45PC2")')
 
 #--------------Gtk Mode----------------------------------
-if "--gtk" in sys.argv or "-g" in sys.argv:
+if("--gtk" in sys.argv or "-g" in sys.argv):
 	pass
-	import gi
 	gi.require_version('Gtk', '3.0')
 	from gi.repository import Gtk
 	from gi.repository import Gdk
@@ -180,38 +232,44 @@ else: #I want to be able to use it without typing -c all the time
 	while stopcli == False:
 		cliinput = input("\033[92;1mPINC > \033[0m").split(" ")
 		#This Crates a new Device by using the correct function
-		if cliinput[0] == "CreateDevice":
-			if len(cliinput) != 3 or "--help" in cliinput or "-h" in cliinput:
-				print("This Creates a new Device\nUsage:\nCreateDevice \033[1m[DeviceName] [DeviceType]\033[0m")
+		if(cliinput[0] == "CreateDevice"):
+			if(len(cliinput) != 3 or "--help" in cliinput or "-h" in cliinput):
+				print("This creates a new Device\nUsage:\nCreateDevice \033[1m[DeviceName] [DeviceType]\033[0m")
 			else:
 				CreateDevice(cliinput[1], cliinput[2])
 		#This adds a Interface to a Device
-		elif cliinput[0] == "AddInterface":
-			if len(cliinput) != 5 or "--help" in cliinput or "-h" in cliinput:
-				print("This Creates a new Interface in an existing Device\nUsage:\nAddInterface \033[1m[Interface Name] [Interface Type] [Parent Device] [Device Slot]\033[0m")
+		elif(cliinput[0] == "AddInterface"):
+			if(len(cliinput) != 5 or "--help" in cliinput or "-h" in cliinput):
+				print("This creates a new Interface in an existing Device\nUsage:\nAddInterface \033[1m[Interface Name] [Interface Type] [Parent Device] [Device Slot]\033[0m")
 			else:
 				AddInterface(cliinput[1], cliinput[2], cliinput[3], cliinput[4])
 		#This connects two interfaces
-		elif cliinput[0] == "ConnectInterfaces":
-			if len(cliinput) != 5 or "--help" in cliinput or "-h" in cliinput:
-				print("This Creates a new Connection between two existing Interfaces\nUsage:\nConnectInterfaces \033[1m[Connector Name] [Connector Type] [Interface 1] [Interface 2]\033[0m")
+		elif(cliinput[0] == "ConnectInterfaces"):
+			if(len(cliinput) != 5 or "--help" in cliinput or "-h" in cliinput):
+				print("This creates a new Connection between two existing Interfaces\nUsage:\nConnectInterfaces \033[1m[Connector Name] [Connector Type] [Interface 1] [Interface 2]\033[0m")
 			else:
-				ConnectInterfaces(cliinput [1], cliinput[2], cliinput[3], cliinput[4])
+				ConnectInterfaces(cliinput[1], cliinput[2], cliinput[3], cliinput[4])
+		elif(cliinput[0] == "Rename"):
+			if(len(cliinput) != 3 or "--help" in cliinput or "-h" in cliinput):
+				print("This Renames existing Devices, Interfaces and Connectors\nUsage:\nRename \33[1m[Old Name] [NewName]\033[0m")
+			else:
+				Rename(cliinput[1], cliinput[2])
 		#List active objects
-		elif cliinput[0] == "ListDevices":
+		elif(cliinput[0] == "ListDevices"):
 			print(ActiveDevices)
-		elif cliinput[0] == "ListInterfaces":
+		elif(cliinput[0] == "ListInterfaces"):
 			print(ActiveInterfaces)
-		elif cliinput[0] == "ListConnectors":
+		elif(cliinput[0] == "ListConnectors"):
 			print(ActiveConnectors)
 		#allows you to exit the commandline
-		elif cliinput[0] == "exit":
+		elif(cliinput[0] == "exit"):
 			stopcli = True
 		#help command !!!!!!!!!!!!!!!!! Update if you change anything
-		elif cliinput[0] == "help":
-			print("CreateDevice \033[1m[DeviceName] [DeviceType]\033[0m\nThis Creates a new Device\n")
-			print("AddInterface \033[1m[Interface Name] [Interface Type] [Parent Device] [Device Slot]\033[0m\nThis Creates a new Interface in an existing Device\n")
-			print("ConnectInterfaces \033[1m[Connector Name] [Connector Type] [Interface 1] [Interface 2]\033[0m\nThis Creates a new Connection between two existing Interfaces\n")
+		elif(cliinput[0] == "help"):
+			print("CreateDevice \033[1m[DeviceName] [DeviceType]\033[0m\nThis creates a new Device\n")
+			print("AddInterface \033[1m[Interface Name] [Interface Type] [Parent Device] [Device Slot]\033[0m\nThis creates a new Interface in an existing Device\n")
+			print("ConnectInterfaces \033[1m[Connector Name] [Connector Type] [Interface 1] [Interface 2]\033[0m\nThis creates a new Connection between two existing Interfaces\n")
+			print("Rename \033[1m[Old Name] [New Name]\033[0m\nThis renames existing Devices, Interfaces and Connectors\n")
 			print("ListDevices\nThis lists all active Devices\n")
 			print("ListInterfaces\nThis lists all active Interfaces\n")
 			print("ListConnectors\nThis lists all active Connectors\n")
