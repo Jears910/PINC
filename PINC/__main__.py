@@ -34,7 +34,7 @@ ActiveConnectors = []
 # This is the function to create a new device
 def CreateDevice( DevName, DevType ):
 	try:
-		if isinstance(globals()[DevType], DefaultClasses.NetDevice) and not DevType in ActiveDevices and not DevName in ActiveDevices:
+		if(isinstance(globals()[DevType], DefaultClasses.NetDevice) and not DevType in ActiveDevices and not DevName in ActiveDevices):
 			print("Creating Device " + DevName + " from " + DevType)
 			# To create a device the object is cloned and its name added to a list
 			"".join([vars()["DevType"], ".Interfaces"])
@@ -48,7 +48,7 @@ def CreateDevice( DevName, DevType ):
 
 # This funcion adds a Network card to an Active device
 def AddInterface( InterfaceName, InterfaceType, ParentDev, DevSlot ):
-	if ParentDev in ActiveDevices:
+	if(ParentDev in ActiveDevices):
 		print("Creating Interface " + InterfaceName + " from " + InterfaceType + " in " + ParentDev)
 		globals()[InterfaceName] = copy.deepcopy(globals()[InterfaceType])
 		globals()[InterfaceName].ParentDev = ParentDev
@@ -61,9 +61,9 @@ def AddInterface( InterfaceName, InterfaceType, ParentDev, DevSlot ):
 # This function connects two Interfaces with a connector
 def ConnectInterfaces( ConnectorName, ConnectorType, Interface1, Interface2 ):
 	#The Interfaces must be active and the Connector Types must match
-	if globals()[ConnectorType].Connector1 == globals()[Interface1].Connector and \
+	if(globals()[ConnectorType].Connector1 == globals()[Interface1].Connector and \
 	globals()[ConnectorType].Connector2 == globals()[Interface2].Connector and \
-	Interface1 in ActiveInterfaces and Interface2 in ActiveInterfaces and ConnectorName not in ActiveConnectors:
+	Interface1 in ActiveInterfaces and Interface2 in ActiveInterfaces and ConnectorName not in ActiveConnectors):
 		print("Creating Connection " + ConnectorName + " from the type " + ConnectorType + " between " + Interface1 + " and " + Interface2)
 		globals()[ConnectorName] = copy.deepcopy(globals()[ConnectorType])
 		globals()[ConnectorName].Interface1 = Interface1
@@ -98,55 +98,73 @@ def SendFrame( Frame, Interface1, Interface2 ):
 		print("The string needs to be a list but was given a " + str(type(Frame)))
 
 def Rename( OldName, NewName ):
+#Check if the Pbject exists and if it is a Device, Interface or Connector
 	if(OldName in ActiveDevices):
+		#Check if the new name is still available
 		if(NewName not in ActiveDevices and not NewName in ActiveInterfaces and not NewName in ActiveConnectors):
+			#Give the child Interfaces the new name
 			InterfaceNumber = 0
 			for Interface in globals()[OldName].Interfaces:
 				if(not Interface == None):
 					globals()[Interface].ParentDev = NewName
+			#Make the new device
 			globals()[NewName] = globals()[OldName]
+			#manipulate the Active Devices list
 			ElementPlace = 0
 			for Element in ActiveDevices:
 				if(Element == OldName):
 					ActiveDevices[ElementPlace] = NewName
 				ElementPlace += 1
+			#delete the old device
 			del globals()[OldName]
 			print("Renamed Device " + OldName + " to " + NewName)
 			return globals()[NewName]
 		else:
 			print("This name has already been given to something else")
 	elif(OldName in ActiveInterfaces):
+		#check if the name is still available
 		if(NewName not in ActiveDevices and not NewName in ActiveInterfaces and not NewName in ActiveConnectors):
+			#Go through The parent devices Interfaces and rename it
 			InterfaceNumber = 0
 			for Interface in globals()[globals()[OldName].ParentDev].Interfaces:
 				if(globals()[globals()[OldName].ParentDev].Interfaces[InterfaceNumber] == OldName):
 					globals()[globals()[OldName].ParentDev].Interfaces[InterfaceNumber] = NewName
-					if(globals()[globals()[OldName].ConnectedConnector].Interface1 == OldName):
-						globals()[globals()[OldName].ConnectedConnector].Interface1 = NewName
-					if(globals()[globals()[OldName].ConnectedConnector].Interface2 == OldName):
-						globals()[globals()[OldName].ConnectedConnector].Interface2 = NewName
-					globals()[NewName] = globals()[OldName]
+				InterfaceNumber += 1
+			#Check the Connected Connector and give it the new name
+			if(globals()[globals()[OldName].ConnectedConnector].Interface1 == OldName):
+				globals()[globals()[OldName].ConnectedConnector].Interface1 = NewName
+			if(globals()[globals()[OldName].ConnectedConnector].Interface2 == OldName):
+				globals()[globals()[OldName].ConnectedConnector].Interface2 = NewName
+			#Create the new interface
+			globals()[NewName] = globals()[OldName]
+			#Replace the Interface Name in the actie Interfaces list
 			ElementPlace = 0
 			for Element in ActiveInterfaces:
 				if(Element == OldName):
 					ActiveInterfaces[ElementPlace] = NewName
 				ElementPlace += 1
+			#Remove the old Interface
 			del globals()[OldName]
 			print("Renamed Interface " + OldName + " to " + NewName)
 			return globals()[NewName]
 		else:
 			print("This name has already been given to something else")
 	elif(OldName in ActiveConnectors):
+		#check if the name is still available
 		if(NewName not in ActiveDevices and not NewName in ActiveInterfaces and not NewName in ActiveConnectors):
+			#Give the connected Interfaces the new name
 			globals()[globals()[OldName].Interface1].ConnectedConnector = NewName
 			globals()[globals()[OldName].Interface2].ConnectedConnector = NewName
+			#Create the new connector
 			globals()[NewName] = globals()[OldName]
+			#Replave the connector name in the active connector list
 			ElementPlace = 0
 			for Element in ActiveConnectors:
 				if(Element == OldName):
 					ActiveConnectors[ElementPlace] = NewName
 				ElementPlace += 1
 			del ElementPlace
+			#delete the old Connector
 			del globals()[OldName]
 			print("Renamed Connector " + OldName + " to " + NewName)
 			return globals()[NewName]
@@ -155,6 +173,8 @@ def Rename( OldName, NewName ):
 	else:
 		print("Object to be renamed not found")
 
+def Delete( DeleteName ):
+	pass #!!!!!!!!!!!!!!!!!!! Implement Delete
 #The frame sending needs to happen in the background so that it doesn't lock up the whole program, this function allows to run things in bg
 #This Needs improvement on the way it passes its arguments !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def run_bg( bg_process ):
