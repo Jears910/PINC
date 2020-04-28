@@ -173,13 +173,54 @@ def Rename( OldName, NewName ):
 	else:
 		print("Object to be renamed not found")
 
+#This function sucks, realy, it's horrible
 def Delete( DeleteName ):
-	pass #!!!!!!!!!!!!!!!!!!! Implement Delete
-#The frame sending needs to happen in the background so that it doesn't lock up the whole program, this function allows to run things in bg
-#This Needs improvement on the way it passes its arguments !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	if(DeleteName in ActiveDevices):
+		for Interface in globals()[DeleteName].Interfaces:
+			if(Interface != None):
+				Delete(Interface)
+		del globals()[DeleteName]
+		DeviceNumber = 0
+		for Device in ActiveDevices:
+			if(Device == DeleteName):
+				ActiveDevices[DeviceNumber] = None
+			DeviceNumber += 1
+		print("Deleted Device " + DeleteName)
+	elif(DeleteName in ActiveInterfaces):
+		print("Deleted Interface " + DeleteName)
+		DeleteInterface = DeleteName
+		DeleteConnector = globals()[DeleteInterface].ConnectedConnector
+		InterfaceNumber = 0
+		for Interface in ActiveInterfaces:
+			if(Interface == DeleteInterface):
+				ActiveInterfaces[InterfaceNumber] = None
+			InterfaceNumber += 1
+		for Interface in globals()[globals()[DeleteInterface].ParentDev].Interfaces:
+			if(Interface == DeleteInterface):
+				DeleteInterface = None
+		del globals()[DeleteName]
+		Delete(DeleteConnector)
+	elif(DeleteName in ActiveConnectors):
+		InterfaceSlot = 0
+		if(globals()[DeleteName].Interface1 in globals()):
+			globals()[globals()[DeleteName].Interface1].ConnectedConnector = None
+		if(globals()[DeleteName].Interface2 in globals()):
+			globals()[globals()[DeleteName].Interface2].ConnectedConnector = None
+		ConnectorNumber = 0
+		for Connector in ActiveConnectors:
+			if(Connector == DeleteName):
+				ActiveConnectors[ConnectorNumber] = None
+			ConnectorNumber += 1
+		del globals()[DeleteName]
+		print("Deleted Connector " + DeleteName)
+	else:
+		print("Couldn't find " + DeleteName + " to delete")
+
+#The frame sending needs to happen in the background so that it doesn't lock up the whole program during its delay, this function allows to run things in bg
+#This Needs improvement on the way it passes its arguments !
 def run_bg( bg_process ):
 	if(isinstance(bg_process, str)):
-		# I'm resolving the given Process here so that it is readable for threads
+		#I'm resolving the given Process here so that it is readable for threads
 		location = 0
 		firstBracket = None
 		lastBracket = None
@@ -269,11 +310,17 @@ else: #I want to be able to use it without typing -c all the time
 				print("This creates a new Connection between two existing Interfaces\nUsage:\nConnectInterfaces \033[1m[Connector Name] [Connector Type] [Interface 1] [Interface 2]\033[0m")
 			else:
 				ConnectInterfaces(cliinput[1], cliinput[2], cliinput[3], cliinput[4])
+		#This renames an object
 		elif(cliinput[0] == "Rename"):
 			if(len(cliinput) != 3 or "--help" in cliinput or "-h" in cliinput):
 				print("This Renames existing Devices, Interfaces and Connectors\nUsage:\nRename \33[1m[Old Name] [NewName]\033[0m")
 			else:
 				Rename(cliinput[1], cliinput[2])
+		elif(cliinput[0] == "Delete"):
+			if(len(cliinput) != 2 or "--help" in cliinput or "-h" in cliinput):
+				print("This Deletes an existing Device, Interface or Connector\nUsage:\nDelete \33[1m[Object Name]\033[0m")
+			else:
+				Delete(cliinput[1])
 		#List active objects
 		elif(cliinput[0] == "ListDevices"):
 			print(ActiveDevices)
@@ -290,6 +337,7 @@ else: #I want to be able to use it without typing -c all the time
 			print("AddInterface \033[1m[Interface Name] [Interface Type] [Parent Device] [Device Slot]\033[0m\nThis creates a new Interface in an existing Device\n")
 			print("ConnectInterfaces \033[1m[Connector Name] [Connector Type] [Interface 1] [Interface 2]\033[0m\nThis creates a new Connection between two existing Interfaces\n")
 			print("Rename \033[1m[Old Name] [New Name]\033[0m\nThis renames existing Devices, Interfaces and Connectors\n")
+			print("Usage:\nDelete \33[1m[Object Name]\033[0m\nThis Deletes an existing Device, Interface or Connector\n")
 			print("ListDevices\nThis lists all active Devices\n")
 			print("ListInterfaces\nThis lists all active Interfaces\n")
 			print("ListConnectors\nThis lists all active Connectors\n")
