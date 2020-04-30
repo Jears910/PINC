@@ -13,16 +13,7 @@ from gi.repository import GLib
 config_dir = GLib.get_user_config_dir()
 PINC_dir = os.path.join(GLib.get_user_data_dir(),"PINC")
 
-#-------------Import Addins--------------------
-#Needs Improving!
-sys.path.append(PINC_dir)
-import Addins
-from Addins import *
-for Adds in Addins.allfiles:
-	globals()[Adds[6:]] = globals()[Adds].main()
-	globals()[Adds[6:]].AddMod = str(Adds)
-
-#----------Lists Needed by functions----------
+#----------Lists Needed by functions to see what devices are active----------
 #This is the list with all the existing devices
 ActiveDevices = []
 #This is the list with all the active interfaces
@@ -30,11 +21,36 @@ ActiveInterfaces = []
 #This is the list with all the active connectors
 ActiveConnectors = []
 
+#Finds usable types
+def FindTypes():
+	DeviceTypes = []
+	InterfaceTypes = []
+	ConnectorTypes = []
+	for Object in globals():
+		if(isinstance(globals()[Object], DefaultClasses.NetDevice) and not Object in ActiveDevices):
+			DeviceTypes.append(Object)
+		elif(isinstance(globals()[Object], DefaultClasses.NetInterface) and not Object in ActiveInterfaces):
+			InterfaceTypes.append(Object)
+		elif(isinstance(globals()[Object], DefaultClasses.NetConnector) and not Object in ActiveConnectors):
+			ConnectorTypes.append(Object)
+	return DeviceTypes, InterfaceTypes, ConnectorTypes
+
+#-------------Import Addins--------------------
+sys.path.append(PINC_dir)
+import Addins
+from Addins import *
+for Adds in Addins.allfiles:
+	globals()[Adds[6:]] = globals()[Adds].main()
+	globals()[Adds[6:]].AddMod = str(Adds)
+DeviceTypes, InterfaceTypes, ConnectorTypes = FindTypes()
+
+
+
 #------------Functions-------------------------
 # This is the function to create a new device
 def CreateDevice( DevName, DevType ):
 	try:
-		if(isinstance(globals()[DevType], DefaultClasses.NetDevice) and not DevType in ActiveDevices and not DevName in ActiveDevices):
+		if(DevType in DeviceTypes and not DevName in globals()):
 			print("Creating Device " + DevName + " from " + DevType)
 			# To create a device the object is cloned and its name added to a list
 			"".join([vars()["DevType"], ".Interfaces"])
@@ -48,7 +64,7 @@ def CreateDevice( DevName, DevType ):
 
 # This funcion adds a Network card to an Active device
 def AddInterface( InterfaceName, InterfaceType, ParentDev, DevSlot ):
-	if(ParentDev in ActiveDevices):
+	if(ParentDev in ActiveDevices and InterfaceType in InterfaceTypes and not InterfaceName in globals()):
 		print("Creating Interface " + InterfaceName + " from " + InterfaceType + " in " + ParentDev)
 		globals()[InterfaceName] = copy.deepcopy(globals()[InterfaceType])
 		globals()[InterfaceName].ParentDev = ParentDev
@@ -63,7 +79,7 @@ def ConnectInterfaces( ConnectorName, ConnectorType, Interface1, Interface2 ):
 	#The Interfaces must be active and the Connector Types must match
 	if(globals()[ConnectorType].Connector1 == globals()[Interface1].Connector and \
 	globals()[ConnectorType].Connector2 == globals()[Interface2].Connector and \
-	Interface1 in ActiveInterfaces and Interface2 in ActiveInterfaces and ConnectorName not in ActiveConnectors):
+	Interface1 in ActiveInterfaces and Interface2 in ActiveInterfaces and ConnectorName not in globals() and ConnectorType in ConnectorTypes):
 		print("Creating Connection " + ConnectorName + " from the type " + ConnectorType + " between " + Interface1 + " and " + Interface2)
 		globals()[ConnectorName] = copy.deepcopy(globals()[ConnectorType])
 		globals()[ConnectorName].Interface1 = Interface1
@@ -90,7 +106,7 @@ def SendFrame( Frame, Interface1, Interface2 ):
 				print("")
 			#Tell the device what and from where it recieved
 			RecvDevice = globals()[RecvInterface.ParentDev]
-			globals()[RecvDevice.AddMod].recv(Packet, Protocol, ChildInterface)
+			globals()[RecvDevice.AddMod].recv(Packet, Protocol, globals()[Interface2].ParentDev,ChildInterface)
 			#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!implement recv function in the net device
 		else:
 			print("Make sure you selected two existing Interfaces that are connected")
@@ -173,46 +189,55 @@ def Rename( OldName, NewName ):
 	else:
 		print("Object to be renamed not found")
 
-#This function sucks, realy, it's horrible
+def DeleteDevice( DelDevice ):
+	for Interface in globals()[DelDevice].Interfaces:
+		if(Interface != None):
+			DeleteInterface(Interface)
+	del globals()[DelDevice]
+	DeviceNumber = 0
+	for Device in ActiveDevices:
+		if(Device == DelDevice):
+			del ActiveDevices[DeviceNumber]
+		DeviceNumber += 1
+	print("Deleted Device " + DelDevice)
+
+def DeleteInterface( DelInterface ):
+	InterfaceNumber = 0
+	for Interface in ActiveInterfaces:
+		if(Interface == DelInterface):
+			del ActiveInterfaces[InterfaceNumber]
+		InterfaceNumber += 1
+	InterfaceNumber = 0
+	for Interface in globals()[globals()[DelInterface].ParentDev].Interfaces:
+		if(Interface == DelInterface):
+			globals()[globals()[DelInterface].ParentDev].Interfaces[InterfaceNumber] = None
+		InterfaceNumber += 1
+	DeleteConnector(globals()[DelInterface].ConnectedConnector)
+	del globals()[DelInterface]
+	print("Deleted Interface " + DelInterface)
+
+def DeleteConnector( DelConnector ):
+	InterfaceSlot = 0
+	if(globals()[DelConnector].Interface1 in globals()):
+		globals()[globals()[DelConnector].Interface1].ConnectedConnector = None
+	if(globals()[DelConnector].Interface2 in globals()):
+		globals()[globals()[DelConnector].Interface2].ConnectedConnector = None
+	ConnectorNumber = 0
+	for Connector in ActiveConnectors:
+		if(Connector == DelConnector):
+			del ActiveConnectors[ConnectorNumber]
+		ConnectorNumber += 1
+	del globals()[DelConnector]
+	print("Deleted Connector " + DelConnector)
+
+#This function sucks, really, it's horrible
 def Delete( DeleteName ):
 	if(DeleteName in ActiveDevices):
-		for Interface in globals()[DeleteName].Interfaces:
-			if(Interface != None):
-				Delete(Interface)
-		del globals()[DeleteName]
-		DeviceNumber = 0
-		for Device in ActiveDevices:
-			if(Device == DeleteName):
-				ActiveDevices[DeviceNumber] = None
-			DeviceNumber += 1
-		print("Deleted Device " + DeleteName)
+		DeleteDevice(DeleteName)
 	elif(DeleteName in ActiveInterfaces):
-		print("Deleted Interface " + DeleteName)
-		DeleteInterface = DeleteName
-		DeleteConnector = globals()[DeleteInterface].ConnectedConnector
-		InterfaceNumber = 0
-		for Interface in ActiveInterfaces:
-			if(Interface == DeleteInterface):
-				ActiveInterfaces[InterfaceNumber] = None
-			InterfaceNumber += 1
-		for Interface in globals()[globals()[DeleteInterface].ParentDev].Interfaces:
-			if(Interface == DeleteInterface):
-				DeleteInterface = None
-		del globals()[DeleteName]
-		Delete(DeleteConnector)
+		DeleteInterface(DeleteName)
 	elif(DeleteName in ActiveConnectors):
-		InterfaceSlot = 0
-		if(globals()[DeleteName].Interface1 in globals()):
-			globals()[globals()[DeleteName].Interface1].ConnectedConnector = None
-		if(globals()[DeleteName].Interface2 in globals()):
-			globals()[globals()[DeleteName].Interface2].ConnectedConnector = None
-		ConnectorNumber = 0
-		for Connector in ActiveConnectors:
-			if(Connector == DeleteName):
-				ActiveConnectors[ConnectorNumber] = None
-			ConnectorNumber += 1
-		del globals()[DeleteName]
-		print("Deleted Connector " + DeleteName)
+		DeleteConnector(DeleteName)
 	else:
 		print("Couldn't find " + DeleteName + " to delete")
 
@@ -247,10 +272,10 @@ AddInterface("RJ45PC1", "RJ45Ethernet", "PC1", 0)
 CreateDevice("PC2", "PINCPC")
 AddInterface("RJ45PC2", "RJ45Ethernet", "PC2", 0)
 ConnectInterfaces("RJ45PC1PC2", "RJ45", "RJ45PC1", "RJ45PC2")
-Rename("RJ45PC1PC2", "test")
-Rename("RJ45PC1", "RJ45TestName")
-Rename("PC1", "PCTest")
-run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45TestName.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], "RJ45TestName", "RJ45PC2")')
+#Rename("RJ45PC1PC2", "test")
+#Rename("RJ45PC1", "RJ45TestName")
+#Rename("PC1", "PCTest")
+run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45PC1.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], "RJ45PC1", "RJ45PC2")')
 
 #--------------Gtk Mode----------------------------------
 if("--gtk" in sys.argv or "-g" in sys.argv):
@@ -328,6 +353,10 @@ else: #I want to be able to use it without typing -c all the time
 			print(ActiveInterfaces)
 		elif(cliinput[0] == "ListConnectors"):
 			print(ActiveConnectors)
+		elif(cliinput[0] == "ListTypes"):
+			print("\033[1mAvailable Device Types:\n\033[0m" + "\n".join(DeviceTypes))
+			print("\033[1mAvailable Interface Types:\n\033[0m" + "\n".join(InterfaceTypes))
+			print("\033[1mAvailable Connector Types:\n\033[0m" + "\n".join(ConnectorTypes))
 		#allows you to exit the commandline
 		elif(cliinput[0] == "exit"):
 			stopcli = True

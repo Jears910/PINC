@@ -4,5 +4,5 @@ def main():
 	PINCPC =	DefaultClasses.NetDevice(	None,	[None, None])
 	return PINCPC
 
-def recv(Packet, Protocol, ChildInterface):
-	pass
+def recv(Packet, Protocol, Device, ChildInterface):
+	print(Device + " received the packet " + str(Packet))

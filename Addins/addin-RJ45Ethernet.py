@@ -1,8 +1,8 @@
 def main():
 	import DefaultClasses
-		#Name									ConType	RecvScript					SendScript				ParentDev	ConnectedConnector	Attributes
+	#Name														ConType	ParentDev	ConnectedConnector	Attributes
 	#random.randint(0x000000000001, 0xfffffffffffe) This is gonna be the mac adress later
-	RJ45Ethernet = DefaultClasses.NetInterface(	"RJ45",	None,		None,				0xabcdef012345)
+	RJ45Ethernet = DefaultClasses.NetInterface(	"RJ45",	None,			None,						0xabcdef012345)
 	return RJ45Ethernet
 def recv(Frame, Interface1, Interface2):
 	import ethertype
