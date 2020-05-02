@@ -286,10 +286,90 @@ if("--gtk" in sys.argv or "-g" in sys.argv):
 	class PINCWindowMain(Gtk.Window):
 		def __init__(self):
 			Gtk.Window.__init__(self, title="PINC")
-			#self.MenuBar = Gtk.MenuBar()
-			#self.add(self.MenuBar)
+			self.MainBox = Gtk.VBox()
 			self.DrawingArea = Gtk.DrawingArea()
-			self.add(self.DrawingArea)
+			self.MenuBar = Gtk.MenuBar()
+			self.FileItem = Gtk.MenuItem()
+			self.FileItem.set_label("File")
+			self.FileMenu = Gtk.Menu()
+			self.AddBox = Gtk.HBox()
+			self.FileItem.set_submenu(self.FileMenu)
+			self.MenuBar.append(self.FileItem)
+
+			self.ObjectTypeSwitch = Gtk.StackSwitcher()
+			self.ObjectTypeStack = Gtk.Stack()
+			self.ObjectTypeSwitch.set_stack(self.ObjectTypeStack)
+			self.NetDeviceBox = Gtk.HBox()
+			self.NetInterfaceBox = Gtk.HBox()
+			self.NetConnectorBox = Gtk.HBox()
+			self.ObjectTypeStack.add_titled(self.NetDeviceBox, "NetDeviceBox", "Network Devices")
+			self.ObjectTypeStack.add_titled(self.NetInterfaceBox, "NetInterfaceBox", "Network Interfaces")
+			self.ObjectTypeStack.add_titled(self.NetConnectorBox, "NetConnectorBox", "Network Connectors")
+
+			self.AddBox.pack_start(self.ObjectTypeSwitch, False, True, 4)
+			self.AddBox.pack_start(self.ObjectTypeStack, True, True, 4)
+
+			self.EditItem = Gtk.MenuItem()
+			self.EditItem.set_label("Edit")
+			self.EditMenu = Gtk.Menu()
+			self.EditItem.set_submenu(self.EditMenu)
+			self.MenuBar.append(self.EditItem)
+
+			self.ViewItem = Gtk.MenuItem()
+			self.ViewItem.set_label("View")
+			self.ViewMenu = Gtk.Menu()
+			self.ViewItem.set_submenu(self.ViewMenu)
+			self.MenuBar.append(self.ViewItem)
+
+			self.HelpItem = Gtk.MenuItem()
+			self.HelpItem.set_label("Help")
+			self.HelpMenu = Gtk.Menu()
+			self.HelpItem.set_submenu(self.HelpMenu)
+			self.MenuBar.append(self.HelpItem)
+
+			self.HLayout = Gtk.HPaned()
+			self.ControlFrame = Gtk.Frame()
+			self.SimulationFrame = Gtk.Frame()
+			self.PacketFrame = Gtk.Frame()
+			self.ControlBox = Gtk.VBox()
+			self.DeletePackageBtn = Gtk.Button()
+			self.PlayControlBox = Gtk.HBox()
+			self.AutoPlayBtn = Gtk.ToggleButton()
+			self.BackBtn = Gtk.Button()
+			self.ForwardBtn = Gtk.Button()
+
+			self.ControlFrame.set_label("Controls")
+			self.ControlFrame.set_shadow_type(Gtk.ShadowType(2))
+			self.ControlFrame.add(self.ControlBox)
+
+			self.ControlBox.pack_start(self.PacketFrame, True, True, 4)
+			self.ControlBox.pack_start(self.DeletePackageBtn, False, True, 4)
+			self.ControlBox.pack_start(self.PlayControlBox, False, True, 4)
+
+			self.PlayControlBox.pack_start(self.BackBtn, True, True, 0)
+			self.BackBtn.set_label("Back")
+			self.PlayControlBox.pack_start(self.AutoPlayBtn, True, True, 4)
+			self.AutoPlayBtn.set_label("AutoPlay")
+			self.PlayControlBox.pack_start(self.ForwardBtn, True, True, 0)
+			self.ForwardBtn.set_label("Forward")
+
+			self.DeletePackageBtn.set_label("Delete all Packages")
+
+			self.PacketFrame.set_label("Packets")
+			self.PacketFrame.set_shadow_type(Gtk.ShadowType(2))
+
+			self.SimulationFrame.set_label("Simulation")
+			self.SimulationFrame.set_shadow_type(Gtk.ShadowType(2))
+			self.SimulationFrame.add(self.DrawingArea)
+
+			self.AddBox
+
+			self.HLayout.add1(self.ControlFrame)
+			self.HLayout.add2(self.SimulationFrame)
+			self.add(self.MainBox)
+			self.MainBox.pack_start(self.MenuBar, False, True, 0)
+			self.MainBox.pack_start(self.HLayout, True, True, 0)
+			self.MainBox.pack_start(self.AddBox, False, True, 0)
 			self.DrawingArea.connect("draw", self.Draw, self.DrawingArea)
 		def Draw(self, widget, event , Area):
 			cr = widget.get_property('window').cairo_create()
