@@ -1,3 +1,23 @@
+'''
+PINC is not Cisco Packet Tracer, a program to simulate Networks
+Copyright (C) 2020 Jeremias Stotter
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+'''
+
+
+
 #! /usr/bin/env python3
 # Distributed under the terms of the GPL v3
 import os
@@ -394,6 +414,10 @@ if("--gtk" in sys.argv or "-g" in sys.argv):
 #elif "--cli" in sys.argv or "-c" in sys.argv:
 else: #I want to be able to use it without typing -c all the time
 	#Using the readline module for autocomp and such
+	print("\033[1mPINC  Copyright (C) 2020  Jeremias Stotter\n\n\
+This program comes with ABSOLUTELY NO WARRANTY; for details type `Warranty'.\n\
+This is free software, and you are welcome to redistribute it\n\
+under certain conditions; type `License' for details.\033[0m\n")
 	try:
 		import readline
 	except:
@@ -446,6 +470,20 @@ else: #I want to be able to use it without typing -c all the time
 		#allows you to exit the commandline
 		elif(cliinput[0] == "exit"):
 			stopcli = True
+		elif(cliinput[0] == "Warranty"):
+			print("\033[1mTHERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT\n\
+PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN\n\
+WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE\n\
+PROGRAM “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED\n\
+OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n\
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n\
+PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF\n\
+THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE,\n\
+YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.\033[0m")
+		elif(cliinput[0] == "License"):
+			print("\033[1mTo read the full license pleas look at the copy\n\
+of the GPL 3 that should have been provided with this program or visit\n\
+www.gnu.org/licenses/gpl-3.0.html to read it")
 		#help command !!!!!!!!!!!!!!!!! Update if you change anything
 		elif(cliinput[0] == "help"):
 			print("CreateDevice \033[1m[DeviceName] [DeviceType]\033[0m\nThis creates a new Device\n")
