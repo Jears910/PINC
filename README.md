@@ -10,6 +10,8 @@ A GTK Interface is in the making, the basic layout is there but nothing is actua
 
 ### Features and TODOs
 ☑ Creating Devices, Interfaces and physical Connections<br/>
+☑ Renaming Devices, Interfaces and physical Connections<br/>
+☑ Deleting Devices, Interfaces and physical Connections<br/>
 ☑ Layer 2 on the receiving side<br/>
 □ Layer 2 on the sending side<br/>
 □ Layer 3 on the receiving side<br/>
