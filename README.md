@@ -13,15 +13,16 @@ A GTK Interface is in the making, the basic layout is there but nothing is actua
 ☑ Renaming Devices, Interfaces and physical Connections<br/>
 ☑ Deleting Devices, Interfaces and physical Connections<br/>
 ☑ Layer 2 on the receiving side<br/>
-□ Layer 2 on the sending side<br/>
+__□ Layer 2 on the sending side<br/>
 □ Layer 3 on the receiving side<br/>
-□ Layer 3 on the sending side<br/>
+□ Layer 3 on the sending side<br/>__
 □ Working GTK interface<br/>
 □ Icons for the Interface<br/>
 □ Network Switch<br/>
 □ Network Router<br/>
 □ Check for multiplatform support<br/>
 □ Cool Logo for the project<br/>
+Underlines mean that these are the things I want to focus on the most before other things
 
 ## LICENSE
 
