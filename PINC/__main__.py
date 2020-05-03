@@ -393,6 +393,12 @@ if("--gtk" in sys.argv or "-g" in sys.argv):
 #-------------------CLI Mode------------------------------
 #elif "--cli" in sys.argv or "-c" in sys.argv:
 else: #I want to be able to use it without typing -c all the time
+	#Using the readline module for autocomp and such
+	try:
+		import readline
+	except:
+		print("\033[93;1mWARNING: \033[0mReadline is not supported on your system")
+	readline.parse_and_bind("tab: complete")
 	print("\033[96;1mCLI Mode")
 	stopcli = False
 	while stopcli == False:
