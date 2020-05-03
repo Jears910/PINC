@@ -471,28 +471,62 @@ under certain conditions; type `License' for details.\033[0m\n")
 		elif(cliinput[0] == "exit"):
 			stopcli = True
 		elif(cliinput[0] == "Warranty"):
-			print("\033[1mTHERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT\n\
-PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN\n\
-WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE\n\
-PROGRAM “AS IS” WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED\n\
-OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n\
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n\
-PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF\n\
-THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE,\n\
-YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.\033[0m")
+			print("\033[1m  \n\
+PINC is distributed WITHOUT ANY WARRANTY. These following in the GPL are\n\
+about the warranty\n\
+\n\
+  15. Disclaimer of Warranty.\n\
+\n\
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY\n\
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT\n\
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM \"AS IS\" WITHOUT WARRANTY\n\
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,\n\
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n\
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM\n\
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF\n\
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.\n\
+\n\
+  16. Limitation of Liability.\n\
+\n\
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING\n\
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS\n\
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY\n\
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE\n\
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF\n\
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD\n\
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),\n\
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF\n\
+SUCH DAMAGES.\n\
+\n\
+  17. Interpretation of Sections 15 and 16.\n\
+\n\
+  If the disclaimer of warranty and limitation of liability provided\n\
+above cannot be given local legal effect according to their terms,\n\
+reviewing courts shall apply local law that most closely approximates\n\
+an absolute waiver of all civil liability in connection with the\n\
+Program, unless a warranty or assumption of liability accompanies a\n\
+copy of the Program in return for a fee.\033[0m")
 		elif(cliinput[0] == "License"):
-			print("\033[1mTo read the full license pleas look at the copy\n\
-of the GPL 3 that should have been provided with this program or visit\n\
-www.gnu.org/licenses/gpl-3.0.html to read it")
+			print("\033[1mPINC is free software: If you follow the GNU General Public License you\ may\n\
+redistribute and modify it.\n\
+PINC comes without any warranty, to get details type ´Warranty´ or look\n\
+at sections 15-17 in the GPL 3.\n\
+\n\
+To read the full license please look at the copy of the GPL 3 that should\n\
+have been provided with this program or visit www.gnu.org/licenses/gpl-3.0.html\n\
+to read it.")
 		#help command !!!!!!!!!!!!!!!!! Update if you change anything
 		elif(cliinput[0] == "help"):
 			print("CreateDevice \033[1m[DeviceName] [DeviceType]\033[0m\nThis creates a new Device\n")
 			print("AddInterface \033[1m[Interface Name] [Interface Type] [Parent Device] [Device Slot]\033[0m\nThis creates a new Interface in an existing Device\n")
 			print("ConnectInterfaces \033[1m[Connector Name] [Connector Type] [Interface 1] [Interface 2]\033[0m\nThis creates a new Connection between two existing Interfaces\n")
 			print("Rename \033[1m[Old Name] [New Name]\033[0m\nThis renames existing Devices, Interfaces and Connectors\n")
-			print("Usage:\nDelete \33[1m[Object Name]\033[0m\nThis Deletes an existing Device, Interface or Connector\n")
+			print("Delete \33[1m[Object Name]\033[0m\nThis Deletes an existing Device, Interface or Connector\n")
 			print("ListDevices\nThis lists all active Devices\n")
 			print("ListInterfaces\nThis lists all active Interfaces\n")
 			print("ListConnectors\nThis lists all active Connectors\n")
+			print("License\nGet details on PINC's license\n")
+			print("Warranty\nGet details on PINC's (lack of) warranty\n")
+			print("exit\nThis exits PINC\n")
 		else:
 			print("Couldn't recognize \"" + cliinput[0] + "\" as a PINC-CLI command. Get help with the \033[1mhelp\033[0m command")
