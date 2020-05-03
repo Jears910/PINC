@@ -5,7 +5,8 @@
 PINC (PINC is not Cisco Packet Tracer) is aiming to be a network simulation software designed to be easily extensible and easy to understand.
 
 Just run it from your shell with "-c" to get the CLI for PINC.
-A GTK Addin is in the making, the basic layout is there but nothing is actually funcioning.
+
+A GTK Interface is in the making, the basic layout is there but nothing is actually funcioning, it can be invoked with the -g argument.
 
 ### Features and TODOs
 ☑ Creating Devices, Interfaces and physical Connections<br/>
