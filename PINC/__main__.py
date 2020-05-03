@@ -8,7 +8,7 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
@@ -472,7 +472,7 @@ under certain conditions; type `License' for details.\033[0m\n")
 			stopcli = True
 		elif(cliinput[0] == "Warranty"):
 			print("\033[1m  \n\
-PINC is distributed WITHOUT ANY WARRANTY. These following in the GPL are\n\
+PINC is distributed WITHOUT ANY WARRANTY. These following sections in the GPL are\n\
 about the warranty\n\
 \n\
   15. Disclaimer of Warranty.\n\
@@ -507,7 +507,7 @@ an absolute waiver of all civil liability in connection with the\n\
 Program, unless a warranty or assumption of liability accompanies a\n\
 copy of the Program in return for a fee.\033[0m")
 		elif(cliinput[0] == "License"):
-			print("\033[1mPINC is free software: If you follow the GNU General Public License you\ may\n\
+			print("\033[1mPINC is free software: If you follow the GNU General Public License you may\n\
 redistribute and modify it.\n\
 PINC comes without any warranty, to get details type ´Warranty´ or look\n\
 at sections 15-17 in the GPL 3.\n\
