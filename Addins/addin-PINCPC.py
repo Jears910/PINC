@@ -1,8 +1,10 @@
 def main():
 	import DefaultClasses
 	#Name											UI		Interface Slots
-	PINCPC =	DefaultClasses.NetDevice(	None,	[None, None])
+	class PINCPC(DefaultClasses.NetDevice):
+		Interfaces = [None, None]
+		def __init__(self):
+			pass
+		def recv(self, Packet, Protocol):
+			print(str(self) + " received the packet " + str(Packet))
 	return PINCPC
-
-def recv(Packet, Protocol, Device, ChildInterface):
-	print(Device + " received the packet " + str(Packet))

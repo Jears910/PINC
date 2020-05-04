@@ -42,18 +42,7 @@ ActiveInterfaces = []
 ActiveConnectors = []
 
 #Finds usable types
-def FindTypes():
-	DeviceTypes = []
-	InterfaceTypes = []
-	ConnectorTypes = []
-	for Object in globals():
-		if(isinstance(globals()[Object], DefaultClasses.NetDevice) and not Object in ActiveDevices):
-			DeviceTypes.append(Object)
-		elif(isinstance(globals()[Object], DefaultClasses.NetInterface) and not Object in ActiveInterfaces):
-			InterfaceTypes.append(Object)
-		elif(isinstance(globals()[Object], DefaultClasses.NetConnector) and not Object in ActiveConnectors):
-			ConnectorTypes.append(Object)
-	return DeviceTypes, InterfaceTypes, ConnectorTypes
+# !!!!!!!!!!!!!!!!!!!! This needs to be rewritten for subclassing
 
 #-------------Import Addins--------------------
 sys.path.append(PINC_dir)
@@ -62,19 +51,22 @@ from Addins import *
 for Adds in Addins.allfiles:
 	globals()[Adds[6:]] = globals()[Adds].main()
 	globals()[Adds[6:]].AddMod = str(Adds)
-DeviceTypes, InterfaceTypes, ConnectorTypes = FindTypes()
 
+DeviceTypes = DefaultClasses.NetDevice.__subclasses__
+InterfaceTypes = DefaultClasses.NetInterface.__subclasses__
+ConnectorTypes = DefaultClasses.NetConnector.__subclasses__
 
 
 #------------Functions-------------------------
+# All those things need be rewritten
 # This is the function to create a new device
 def CreateDevice( DevName, DevType ):
 	try:
-		if(DevType in DeviceTypes and not DevName in globals()):
+		if(not DevName in globals()):
 			print("Creating Device " + DevName + " from " + DevType)
 			# To create a device the object is cloned and its name added to a list
-			"".join([vars()["DevType"], ".Interfaces"])
-			globals()[DevName] = copy.deepcopy(globals()[DevType])
+#			"".join([vars()["DevType"], ".Interfaces"])
+			globals()[DevName] = globals()[DevType]()
 			ActiveDevices.append(DevName)
 			return globals()[DevName]
 		else:
@@ -84,10 +76,9 @@ def CreateDevice( DevName, DevType ):
 
 # This funcion adds a Network card to an Active device
 def AddInterface( InterfaceName, InterfaceType, ParentDev, DevSlot ):
-	if(ParentDev in ActiveDevices and InterfaceType in InterfaceTypes and not InterfaceName in globals()):
+	if(ParentDev in ActiveDevices and not InterfaceName in globals()):
 		print("Creating Interface " + InterfaceName + " from " + InterfaceType + " in " + ParentDev)
-		globals()[InterfaceName] = copy.deepcopy(globals()[InterfaceType])
-		globals()[InterfaceName].ParentDev = ParentDev
+		globals()[InterfaceName] = globals()[InterfaceType](ParentDev)
 		globals()[ParentDev].Interfaces[int(DevSlot)] = InterfaceName
 		ActiveInterfaces.append(InterfaceName)
 		return globals()[InterfaceName]
@@ -99,17 +90,18 @@ def ConnectInterfaces( ConnectorName, ConnectorType, Interface1, Interface2 ):
 	#The Interfaces must be active and the Connector Types must match
 	if(globals()[ConnectorType].Connector1 == globals()[Interface1].Connector and \
 	globals()[ConnectorType].Connector2 == globals()[Interface2].Connector and \
-	Interface1 in ActiveInterfaces and Interface2 in ActiveInterfaces and ConnectorName not in globals() and ConnectorType in ConnectorTypes):
+	Interface1 in ActiveInterfaces and Interface2 in ActiveInterfaces and \
+	ConnectorName not in globals()):
 		print("Creating Connection " + ConnectorName + " from the type " + ConnectorType + " between " + Interface1 + " and " + Interface2)
-		globals()[ConnectorName] = copy.deepcopy(globals()[ConnectorType])
-		globals()[ConnectorName].Interface1 = Interface1
-		globals()[ConnectorName].Interface2 = Interface2
+		globals()[ConnectorName] = globals()[ConnectorType](Interface1, Interface2)
 		globals()[Interface1].ConnectedConnector = ConnectorName
 		globals()[Interface2].ConnectedConnector = ConnectorName
 		ActiveConnectors.append(ConnectorName)
 		return globals()[ConnectorName]
 	else:
 		print("Could not create Connector, check that the Connector Types match, that you choose valid interfaces and a unique name")
+#-------------------------------------------------------
+
 #This function is used to send a frame between Interfaces
 #The Frame is the whole actual frame as a table, each field in the frame can be split that way.
 def SendFrame( Frame, Interface1, Interface2 ):
@@ -118,15 +110,12 @@ def SendFrame( Frame, Interface1, Interface2 ):
 		if globals()[Interface1].ConnectedConnector == globals()[Interface2].ConnectedConnector:
 			time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
 			#Tell the Interface it recieved a frame
-			RecvInterface = globals()[Interface2]
 			try:
-				pass
-				Packet, Protocol, ChildInterface = globals()[RecvInterface.AddMod].recv(Frame, globals()[Interface1], globals()[Interface2])
+				Packet, Protocol = globals()[Interface2].recv(Frame)
 			except:
-				print("")
+				print("Error receiving Frame")
 			#Tell the device what and from where it recieved
-			RecvDevice = globals()[RecvInterface.ParentDev]
-			globals()[RecvDevice.AddMod].recv(Packet, Protocol, globals()[Interface2].ParentDev,ChildInterface)
+			globals()[globals()[Interface2].ParentDev].recv(Packet, Protocol)
 			#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!implement recv function in the net device
 		else:
 			print("Make sure you selected two existing Interfaces that are connected")
