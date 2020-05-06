@@ -6,5 +6,21 @@ def main():
 		def __init__(self):
 			pass
 		def recv(self, Packet, Protocol):
-			print(str(self) + " received the packet " + str(Packet))
+			print(str(self) + " received the packet " + str(Packet) + " of the type " + Protocol)
+			if(Protocol == "IPv4"):
+				if(type(Packet) == list and len(Packet) == 15 or len(Packet) == 14):
+				# Version check
+					if(Packet[0] == 4):
+						print("v4")
+						# IHL (Unrealistic, might make an option later)
+						if(Packet[1] <= 16 and Packet[1] >= 5):
+							print("Valid IHL")
+							#Type of Service 
+							#if(Packet[2] )
+						else:
+							print("Invalid IHL")
+					else:
+						print("not v4")
+				else:
+					print("Not a valid IP Packet")
 	return PINCPC
