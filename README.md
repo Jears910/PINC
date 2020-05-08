@@ -7,22 +7,23 @@ PINC (PINC is not Cisco Packet Tracer) is aiming to be a network simulation soft
 Just run it from your shell with "-c" to get the CLI for PINC.
 
 A GTK Interface is in the making, the basic layout is there but nothing is actually funcioning, it can be invoked with the -g argument.
-_
+
 ### Features and TODOs
+□ Get rid of a lot of the globals()[]<br/>
 ☑ Creating Devices, Interfaces and physical Connections<br/>
 ☑ Renaming Devices, Interfaces and physical Connections<br/>
 ☑ Deleting Devices, Interfaces and physical Connections<br/>
 ☑ Layer 2 on the receiving side<br/>
-_□ Layer 2 on the sending side<br/>
+□ Layer 2 on the sending side<br/>
 □ Layer 3 on the receiving side<br/>
-□ Layer 3 on the sending side<br/>_
+□ Layer 3 on the sending side<br/>
 □ Working GTK interface<br/>
 □ Icons for the Interface<br/>
 □ Network Switch<br/>
 □ Network Router<br/>
 □ Check for multiplatform support<br/>
 □ Cool Logo for the project<br/>
-Italic features are the ones I'll be focusing on first.
+**Italic features are the ones I'll be focusing on first.**
 
 ## LICENSE
 
