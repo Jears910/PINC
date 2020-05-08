@@ -6,3 +6,4 @@ ethertype = {
 	0x0842 : "WOL",
 	0x86dd : "IPv6"
 }
+ethertypeRev = {value: key for key, value in ethertype.items()}

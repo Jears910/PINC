@@ -40,6 +40,8 @@ ActiveDevices = []
 ActiveInterfaces = []
 #This is the list with all the active connectors
 ActiveConnectors = []
+#This is the queue that to-be-executed Send things and others are stored, they'll get executed at the next simulation step
+SendQueue = []
 
 #Finds usable types
 # !!!!!!!!!!!!!!!!!!!! This needs to be rewritten for subclassing
@@ -104,21 +106,23 @@ def ConnectInterfaces( ConnectorName, ConnectorType, Interface1, Interface2 ):
 
 #This function is used to send a frame between Interfaces
 #The Frame is the whole actual frame as a table, each field in the frame can be split that way.
-def SendFrame( Frame, Interface1, Interface2 ):
+def SendFrame( Frame, Interface1):
 	if(isinstance( Frame, list )):
 	#The interfaces must be connected
-		if globals()[Interface1].ConnectedConnector == globals()[Interface2].ConnectedConnector:
-			time.sleep((globals()[globals()[Interface1].ConnectedConnector].Latency)/1000)
-			#Tell the Interface it recieved a frame
-			try:
-				Packet, Protocol = globals()[Interface2].recv(Frame)
-			except:
-				print("Error receiving Frame")
-			#Tell the device what and from where it recieved
-			globals()[globals()[Interface2].ParentDev].recv(Packet, Protocol)
-			#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!implement recv function in the net device
-		else:
-			print("Make sure you selected two existing Interfaces that are connected")
+		time.sleep((globals()[Interface1.ConnectedConnector].Latency)/1000)
+		#Tell the Interface it recieved a frame
+#		try:
+		Interface2 = globals()[globals()[Interface1.ConnectedConnector].Interface1]
+		if(Interface2 == Interface1):
+			Interface2 = globals()[globals()[Interface1.ConnectedConnector].Interface2]
+		Packet, Protocol = Interface2.recv(Frame)
+		globals()[Interface2.ParentDev].recv(Packet, Protocol)
+#
+#		except:
+		print("Error receiving Frame")
+#
+		#Tell the device what and from where it recieved
+		#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!implement recv function in the net device
 	else:
 		print("The string needs to be a list but was given a " + str(type(Frame)))
 
@@ -252,28 +256,15 @@ def Delete( DeleteName ):
 
 #The frame sending needs to happen in the background so that it doesn't lock up the whole program during its delay, this function allows to run things in bg
 #This Needs improvement on the way it passes its arguments !
-def run_bg( bg_process ):
-	if(isinstance(bg_process, str)):
-		#I'm resolving the given Process here so that it is readable for threads
-		location = 0
-		firstBracket = None
-		lastBracket = None
-		for character in bg_process:
-			location += 1
-			if(character == "("):
-				firstBracket = location - 1
-				break
-		location = 0
-		for character in bg_process:
-			location += 1
-			if(character == ")"):
-				lastBracket = location - 1
-		bg_process_process = bg_process[None:firstBracket]
-		bg_process_args = bg_process[firstBracket+1:lastBracket]
-		process_bg_thread = threading.Thread(target=eval(bg_process_process), args=(eval(bg_process_args)))
-		return process_bg_thread.start()
-	else:
-		print("bg_run needs a string but was given " + str(type(bg_process)))
+def run_bg( bg_process, args):
+	bg_thread = threading.Thread(target=bg_process, args=tuple(args))
+	return bg_thread.start()
+
+def work_queq(SendQueue):
+	for SendReq in SendQueue:
+		run_bg(SendFrame, SendReq)
+	SendQueue = []
+	return SendQueue
 
 # Test function calls, these are gonna be removed when there is an interactive conslole
 CreateDevice("PC1", "PINCPC")
@@ -284,7 +275,9 @@ ConnectInterfaces("RJ45PC1PC2", "RJ45", "RJ45PC1", "RJ45PC2")
 #Rename("RJ45PC1PC2", "test")
 #Rename("RJ45PC1", "RJ45TestName")
 #Rename("PC1", "PCTest")
-run_bg('SendFrame([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45PC1.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], "RJ45PC1", "RJ45PC2")')
+#run_bg(SendFrame, ([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45PC1.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], RJ45PC1))
+SendQueue.append(RJ45PC1.send([0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 0xffffffffffff, "IPv4", SendQueue))
+print("Current SendQueue:" + str(SendQueue))
 
 #--------------Gtk Mode----------------------------------
 if("--gtk" in sys.argv or "-g" in sys.argv):
@@ -456,6 +449,8 @@ under certain conditions; type `License' for details.\033[0m\n")
 			print("\033[1mAvailable Device Types:\n\033[0m" + "\n".join(DeviceTypes))
 			print("\033[1mAvailable Interface Types:\n\033[0m" + "\n".join(InterfaceTypes))
 			print("\033[1mAvailable Connector Types:\n\033[0m" + "\n".join(ConnectorTypes))
+		elif(cliinput[0] == "fwd" or cliinput[0] == "forward"):
+			SendQueue = work_queq(SendQueue)
 		#allows you to exit the commandline
 		elif(cliinput[0] == "exit"):
 			stopcli = True

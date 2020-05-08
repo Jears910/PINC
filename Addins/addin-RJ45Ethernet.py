@@ -23,9 +23,10 @@ def main():
 					return 1
 
 			if((int((len(str(hex(Frame[0]))) -2) / 2)) == 7):
+				print(Frame[2:6])
 				#Check Preamble
 				if(Frame[0] == 0xaaaaaaaaaaaaaa):
-				#check sfd
+					#check sfd
 					if(Frame[1] == 0xab):
 						#check if the frame is mine or not
 						if(Frame[2] == self.MAC or Frame[2] == 0xffffffffffff):
@@ -50,5 +51,29 @@ def main():
 				else:
 					print("Invalid preamble")
 					return 1
+		def send(self, Packet, Receiver, TypeName, SendQueue):
+			import ethertype
+			import crc32
+			#Add ethertype
+			Frame = []
+			#try:
+			Preamble = 0xAAAAAAAAAAAAAA
+			Frame.append(Preamble)
+			SFD = 0xAB
+			Frame.append(SFD)
+			RecvMAC = Receiver
+			Frame.append(RecvMAC)
+			SendMAC = self.MAC
+			Frame.append(SendMAC)
+			FrameEthertype = ethertype.ethertypeRev[TypeName]
+			Frame.append(FrameEthertype)
+			Frame.append(Packet)
+			Checksum = crc32.crc32(Frame[2:6])
+			Frame.append(Checksum)
+			print(Frame)
+			SendQueue.append(Frame)
+			return (Frame, self)
+			#except:
+			#	return 'print("Send Error")'
 	return RJ45Ethernet
 
