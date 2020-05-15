@@ -9,7 +9,6 @@ Just run it from your shell with "-c" to get the CLI for PINC.
 A GTK Interface is in the making, the basic layout is there but nothing is actually funcioning, it can be invoked with the -g argument.
 
 ### Features and TODOs
-□ Get rid of a lot of the globals()[] by adding a "label" variable for the name to the classes<br/>
 ☑ Creating Devices, Interfaces and physical Connections<br/>
 ☑ Renaming Devices, Interfaces and physical Connections<br/>
 ☑ Deleting Devices, Interfaces and physical Connections<br/>
