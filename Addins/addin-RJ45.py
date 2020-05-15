@@ -6,7 +6,8 @@ def main():
 		Connector1 = "RJ45"
 		Connector2 = "RJ45"
 		Latency = 5
-		def __init__(self, Interface1, Interface2):
+		def __init__(self, label, Interface1, Interface2):
+			self.label = label
 			self.Interface1 = Interface1
 			self.Interface2 = Interface2
 	return RJ45

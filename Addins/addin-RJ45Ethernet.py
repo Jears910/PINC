@@ -6,7 +6,8 @@ def main():
 	class RJ45Ethernet(DefaultClasses.NetInterface):
 		Connector = "RJ45"
 		MAC = 0xabcdef012345
-		def __init__(self, ParentDev):
+		def __init__(self, label, ParentDev):
+			self.label = label
 			self.ParentDev = ParentDev
 
 		def recv(self, Frame):
@@ -51,29 +52,28 @@ def main():
 				else:
 					print("Invalid preamble")
 					return 1
-		def send(self, Packet, Receiver, TypeName, SendQueue):
+		def send(self, Packet, Receiver, TypeName):
 			import ethertype
 			import crc32
 			#Add ethertype
 			Frame = []
-			#try:
-			Preamble = 0xAAAAAAAAAAAAAA
-			Frame.append(Preamble)
-			SFD = 0xAB
-			Frame.append(SFD)
-			RecvMAC = Receiver
-			Frame.append(RecvMAC)
-			SendMAC = self.MAC
-			Frame.append(SendMAC)
-			FrameEthertype = ethertype.ethertypeRev[TypeName]
-			Frame.append(FrameEthertype)
-			Frame.append(Packet)
-			Checksum = crc32.crc32(Frame[2:6])
-			Frame.append(Checksum)
-			print(Frame)
-			SendQueue.append(Frame)
-			return (Frame, self)
-			#except:
-			#	return 'print("Send Error")'
+			try:
+				Preamble = 0xAAAAAAAAAAAAAA
+				Frame.append(Preamble)
+				SFD = 0xAB
+				Frame.append(SFD)
+				RecvMAC = Receiver
+				Frame.append(RecvMAC)
+				SendMAC = self.MAC
+				Frame.append(SendMAC)
+				FrameEthertype = ethertype.ethertypeRev[TypeName]
+				Frame.append(FrameEthertype)
+				Frame.append(Packet)
+				Checksum = crc32.crc32(Frame[2:6])
+				Frame.append(Checksum)
+				print(Frame)
+				return (Frame, self)
+			except:
+				print("Send Error")
 	return RJ45Ethernet
 

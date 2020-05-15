@@ -1,17 +1,16 @@
 def main():
 	import DefaultClasses
-	#Name											UI		Interface Slots
 	class PINCPC(DefaultClasses.NetDevice):
 		Interfaces = [None, None]
-		def __init__(self):
-			pass
+		def __init__(self, label):
+			self.label = label
 		def recv(self, Packet, Protocol):
 			print(str(self) + " received the packet " + str(Packet) + " of the type " + Protocol)
 			if(Protocol == "IPv4"):
 				if(type(Packet) == list and len(Packet) == 15 or len(Packet) == 14):
 				# Version check
 					if(Packet[0] == 4):
-						print("v4")
+						print("Is v4")
 						# IHL (Unrealistic, might make an option later)
 						if(Packet[1] <= 16 and Packet[1] >= 5):
 							print("Valid IHL")

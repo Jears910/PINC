@@ -21,11 +21,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #! /usr/bin/env python3
 # Distributed under the terms of the GPL v3
 import os
-import copy
 import time
 import sys
 import threading
 import DefaultClasses
+import License
 import gi
 from gi.repository import GLib
 
@@ -51,8 +51,9 @@ sys.path.append(PINC_dir)
 import Addins
 from Addins import *
 for Adds in Addins.allfiles:
-	globals()[Adds[6:]] = globals()[Adds].main()
-	globals()[Adds[6:]].AddMod = str(Adds)
+	locals()[Adds[6:]] = locals()[Adds].main()
+	locals()[Adds[6:]].AddMod = str(Adds)
+	del Adds
 
 DeviceTypes = DefaultClasses.NetDevice.__subclasses__
 InterfaceTypes = DefaultClasses.NetInterface.__subclasses__
@@ -66,13 +67,11 @@ def CreateDevice( DevName, DevType ):
 	try:
 		if(not DevName in globals()):
 			print("Creating Device " + DevName + " from " + DevType)
-			# To create a device the object is cloned and its name added to a list
-#			"".join([vars()["DevType"], ".Interfaces"])
-			globals()[DevName] = globals()[DevType]()
+			globals()[DevName] = globals()[DevType](DevName)
 			ActiveDevices.append(DevName)
 			return globals()[DevName]
 		else:
-			print("Make sure your Devicetype is a valid Devicetype")
+			print("Make sure your Device doesn't already exist")
 	except:
 		print("Make sure your Devicetype is a valid Devicetype")
 
@@ -80,7 +79,7 @@ def CreateDevice( DevName, DevType ):
 def AddInterface( InterfaceName, InterfaceType, ParentDev, DevSlot ):
 	if(ParentDev in ActiveDevices and not InterfaceName in globals()):
 		print("Creating Interface " + InterfaceName + " from " + InterfaceType + " in " + ParentDev)
-		globals()[InterfaceName] = globals()[InterfaceType](ParentDev)
+		globals()[InterfaceName] = globals()[InterfaceType](InterfaceName, ParentDev)
 		globals()[ParentDev].Interfaces[int(DevSlot)] = InterfaceName
 		ActiveInterfaces.append(InterfaceName)
 		return globals()[InterfaceName]
@@ -95,7 +94,7 @@ def ConnectInterfaces( ConnectorName, ConnectorType, Interface1, Interface2 ):
 	Interface1 in ActiveInterfaces and Interface2 in ActiveInterfaces and \
 	ConnectorName not in globals()):
 		print("Creating Connection " + ConnectorName + " from the type " + ConnectorType + " between " + Interface1 + " and " + Interface2)
-		globals()[ConnectorName] = globals()[ConnectorType](Interface1, Interface2)
+		globals()[ConnectorName] = globals()[ConnectorType](ConnectorName, Interface1, Interface2)
 		globals()[Interface1].ConnectedConnector = ConnectorName
 		globals()[Interface2].ConnectedConnector = ConnectorName
 		ActiveConnectors.append(ConnectorName)
@@ -106,20 +105,19 @@ def ConnectInterfaces( ConnectorName, ConnectorType, Interface1, Interface2 ):
 
 #This function is used to send a frame between Interfaces
 #The Frame is the whole actual frame as a table, each field in the frame can be split that way.
-def SendFrame( Frame, Interface1):
+def SendFrame( Frame, Interface1 ):
 	if(isinstance( Frame, list )):
 	#The interfaces must be connected
 		time.sleep((globals()[Interface1.ConnectedConnector].Latency)/1000)
 		#Tell the Interface it recieved a frame
-#		try:
-		Interface2 = globals()[globals()[Interface1.ConnectedConnector].Interface1]
-		if(Interface2 == Interface1):
-			Interface2 = globals()[globals()[Interface1.ConnectedConnector].Interface2]
-		Packet, Protocol = Interface2.recv(Frame)
-		globals()[Interface2.ParentDev].recv(Packet, Protocol)
-#
-#		except:
-		print("Error receiving Frame")
+		try:
+			Interface2 = globals()[globals()[Interface1.ConnectedConnector].Interface1]
+			if(Interface2 == Interface1):
+				Interface2 = globals()[globals()[Interface1.ConnectedConnector].Interface2]
+			Packet, Protocol = Interface2.recv(Frame)
+			globals()[Interface2.ParentDev].recv(Packet, Protocol)
+		except:
+			print("Error receiving Frame")
 #
 		#Tell the device what and from where it recieved
 		#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!implement recv function in the net device
@@ -202,49 +200,49 @@ def Rename( OldName, NewName ):
 	else:
 		print("Object to be renamed not found")
 
-def DeleteDevice( DelDevice ):
-	for Interface in globals()[DelDevice].Interfaces:
-		if(Interface != None):
-			DeleteInterface(Interface)
-	del globals()[DelDevice]
-	DeviceNumber = 0
-	for Device in ActiveDevices:
-		if(Device == DelDevice):
-			del ActiveDevices[DeviceNumber]
-		DeviceNumber += 1
-	print("Deleted Device " + DelDevice)
-
-def DeleteInterface( DelInterface ):
-	InterfaceNumber = 0
-	for Interface in ActiveInterfaces:
-		if(Interface == DelInterface):
-			del ActiveInterfaces[InterfaceNumber]
-		InterfaceNumber += 1
-	InterfaceNumber = 0
-	for Interface in globals()[globals()[DelInterface].ParentDev].Interfaces:
-		if(Interface == DelInterface):
-			globals()[globals()[DelInterface].ParentDev].Interfaces[InterfaceNumber] = None
-		InterfaceNumber += 1
-	DeleteConnector(globals()[DelInterface].ConnectedConnector)
-	del globals()[DelInterface]
-	print("Deleted Interface " + DelInterface)
-
-def DeleteConnector( DelConnector ):
-	InterfaceSlot = 0
-	if(globals()[DelConnector].Interface1 in globals()):
-		globals()[globals()[DelConnector].Interface1].ConnectedConnector = None
-	if(globals()[DelConnector].Interface2 in globals()):
-		globals()[globals()[DelConnector].Interface2].ConnectedConnector = None
-	ConnectorNumber = 0
-	for Connector in ActiveConnectors:
-		if(Connector == DelConnector):
-			del ActiveConnectors[ConnectorNumber]
-		ConnectorNumber += 1
-	del globals()[DelConnector]
-	print("Deleted Connector " + DelConnector)
 
 #This function sucks, really, it's horrible
 def Delete( DeleteName ):
+	def DeleteDevice( DelDevice ):
+		for Interface in globals()[DelDevice].Interfaces:
+			if(Interface != None):
+				DeleteInterface(Interface)
+		del globals()[DelDevice]
+		DeviceNumber = 0
+		for Device in ActiveDevices:
+			if(Device == DelDevice):
+				del ActiveDevices[DeviceNumber]
+			DeviceNumber += 1
+		print("Deleted Device " + DelDevice)
+	
+	def DeleteInterface( DelInterface ):
+		InterfaceNumber = 0
+		for Interface in ActiveInterfaces:
+			if(Interface == DelInterface):
+				del ActiveInterfaces[InterfaceNumber]
+			InterfaceNumber += 1
+		InterfaceNumber = 0
+		for Interface in globals()[globals()[DelInterface].ParentDev].Interfaces:
+			if(Interface == DelInterface):
+				globals()[globals()[DelInterface].ParentDev].Interfaces[InterfaceNumber] = None
+			InterfaceNumber += 1
+		DeleteConnector(globals()[DelInterface].ConnectedConnector)
+		del globals()[DelInterface]
+		print("Deleted Interface " + DelInterface)
+	
+	def DeleteConnector( DelConnector ):
+		InterfaceSlot = 0
+		if(globals()[DelConnector].Interface1 in globals()):
+			globals()[globals()[DelConnector].Interface1].ConnectedConnector = None
+		if(globals()[DelConnector].Interface2 in globals()):
+			globals()[globals()[DelConnector].Interface2].ConnectedConnector = None
+		ConnectorNumber = 0
+		for Connector in ActiveConnectors:
+			if(Connector == DelConnector):
+				del ActiveConnectors[ConnectorNumber]
+			ConnectorNumber += 1
+		del globals()[DelConnector]
+		print("Deleted Connector " + DelConnector)
 	if(DeleteName in ActiveDevices):
 		DeleteDevice(DeleteName)
 	elif(DeleteName in ActiveInterfaces):
@@ -260,7 +258,7 @@ def run_bg( bg_process, args):
 	bg_thread = threading.Thread(target=bg_process, args=tuple(args))
 	return bg_thread.start()
 
-def work_queq(SendQueue):
+def work_queue(SendQueue):
 	for SendReq in SendQueue:
 		run_bg(SendFrame, SendReq)
 	SendQueue = []
@@ -276,7 +274,7 @@ ConnectInterfaces("RJ45PC1PC2", "RJ45", "RJ45PC1", "RJ45PC2")
 #Rename("RJ45PC1", "RJ45TestName")
 #Rename("PC1", "PCTest")
 #run_bg(SendFrame, ([0xAAAAAAAAAAAAAA, 0xAB, 0xffffffffffff, RJ45PC1.MAC, 0x0800, [0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 2078830327, 0x000000000000000000000000], RJ45PC1))
-SendQueue.append(RJ45PC1.send([0x0142145761757171717572457846384284248234245644248224242454241244243, "abbcdf"], 0xffffffffffff, "IPv4", SendQueue))
+SendQueue.append(RJ45PC1.send([4, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0xffffffffffff, "IPv4"))
 print("Current SendQueue:" + str(SendQueue))
 
 #--------------Gtk Mode----------------------------------
@@ -450,55 +448,15 @@ under certain conditions; type `License' for details.\033[0m\n")
 			print("\033[1mAvailable Interface Types:\n\033[0m" + "\n".join(InterfaceTypes))
 			print("\033[1mAvailable Connector Types:\n\033[0m" + "\n".join(ConnectorTypes))
 		elif(cliinput[0] == "fwd" or cliinput[0] == "forward"):
-			SendQueue = work_queq(SendQueue)
+			SendQueue = work_queue(SendQueue)
 		#allows you to exit the commandline
 		elif(cliinput[0] == "exit"):
 			stopcli = True
 		elif(cliinput[0] == "Warranty"):
-			print("\033[1m  \n\
-PINC is distributed WITHOUT ANY WARRANTY. These following sections in the GPL are\n\
-about the warranty\n\
-\n\
-  15. Disclaimer of Warranty.\n\
-\n\
-  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY\n\
-APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT\n\
-HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM \"AS IS\" WITHOUT WARRANTY\n\
-OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,\n\
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n\
-PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM\n\
-IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF\n\
-ALL NECESSARY SERVICING, REPAIR OR CORRECTION.\n\
-\n\
-  16. Limitation of Liability.\n\
-\n\
-  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING\n\
-WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS\n\
-THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY\n\
-GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE\n\
-USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF\n\
-DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD\n\
-PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),\n\
-EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF\n\
-SUCH DAMAGES.\n\
-\n\
-  17. Interpretation of Sections 15 and 16.\n\
-\n\
-  If the disclaimer of warranty and limitation of liability provided\n\
-above cannot be given local legal effect according to their terms,\n\
-reviewing courts shall apply local law that most closely approximates\n\
-an absolute waiver of all civil liability in connection with the\n\
-Program, unless a warranty or assumption of liability accompanies a\n\
-copy of the Program in return for a fee.\033[0m")
+			License.Warranty()
 		elif(cliinput[0] == "License"):
-			print("\033[1mPINC is free software: If you follow the GNU General Public License you may\n\
-redistribute and modify it.\n\
-PINC comes without any warranty, to get details type ´Warranty´ or look\n\
-at sections 15-17 in the GPL 3.\n\
-\n\
-To read the full license please look at the copy of the GPL 3 that should\n\
-have been provided with this program or visit www.gnu.org/licenses/gpl-3.0.html\n\
-to read it.")
+			License.License()
+		
 		#help command !!!!!!!!!!!!!!!!! Update if you change anything
 		elif(cliinput[0] == "help"):
 			print("CreateDevice \033[1m[DeviceName] [DeviceType]\033[0m\nThis creates a new Device\n")

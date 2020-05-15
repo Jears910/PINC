@@ -1,4 +1,5 @@
 class NetDevice (object):
+	label = ""
 	'Network Device'
 	# If the device should have a UI (in form of a CLI), the py File goes here, otherwise put None here
 	UI = ""
@@ -6,6 +7,7 @@ class NetDevice (object):
 	Interfaces = []
 
 class NetInterface (object):
+	label = ""
 	'Interfaces that get plugged into a NetDevice'
 	Connector = ""
 	# The interface performs Package Handling when it Recieves or Sends a Package. These Routins are defined in a Python File
@@ -14,6 +16,7 @@ class NetInterface (object):
 	MAC = 0x0
 
 class NetConnector (object):
+	label = ""
 	'Cables, Adapters, ...'
 	Connector1 = ""
 	Connector2 = ""
